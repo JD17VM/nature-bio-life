@@ -4,6 +4,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\CategoriaController;
+use App\Http\Controllers\Api\CategoriaPremioController;
+use App\Http\Controllers\Api\CategoriaVideoController;
+use App\Http\Controllers\Api\TipoMaterialController;
+use App\Http\Controllers\Api\ProductoController;
+use App\Http\Controllers\Api\PremioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,3 +32,4 @@ Route::apiResource('categoria-videos', CategoriaVideoController::class);
 Route::apiResource('tipo-materiales', TipoMaterialController::class);
 
 Route::apiResource('productos', ProductoController::class);
+Route::apiResource('premios', PremioController::class);
