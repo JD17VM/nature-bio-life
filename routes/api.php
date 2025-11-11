@@ -19,3 +19,7 @@ use App\Http\Controllers\Api\CategoriaController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+Route::apiResource('categorias', CategoriaController::class);
+Route::apiResource('categoria-premios', CategoriaPremioController::class);
