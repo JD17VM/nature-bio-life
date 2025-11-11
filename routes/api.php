@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\CategoriaVideoController;
 use App\Http\Controllers\Api\TipoMaterialController;
 use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\PremioController;
+use App\Http\Controllers\Api\VideoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,3 +34,4 @@ Route::apiResource('tipo-materiales', TipoMaterialController::class);
 
 Route::apiResource('productos', ProductoController::class);
 Route::apiResource('premios', PremioController::class);
+Route::apiResource('videos', VideoController::class);
