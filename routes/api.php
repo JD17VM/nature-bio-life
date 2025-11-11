@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\ProductoController;
 use App\Http\Controllers\Api\PremioController;
 use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\MaterialController;
+use App\Http\Controllers\Api\ConfiguracionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -37,3 +38,4 @@ Route::apiResource('productos', ProductoController::class);
 Route::apiResource('premios', PremioController::class);
 Route::apiResource('videos', VideoController::class);
 Route::apiResource('materiales', MaterialController::class);
+Route::apiResource('configuraciones', ConfiguracionController::class);
