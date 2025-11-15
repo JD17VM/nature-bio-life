@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\CategoriaPremio;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\CategoriaPremio\StoreCategoriaPremioRequest;
+use App\Http\Requests\CategoriaPremio\UpdateCategoriaPremioRequest;
+
 class CategoriaPremioController extends Controller
 {
     /**
@@ -13,7 +16,7 @@ class CategoriaPremioController extends Controller
      */
     public function index()
     {
-        $categorias = CategoriaPremio::all(); // No tiene 'activa'
+        $categorias = CategoriaPremio::all(); // Esta tabla no tiene campo 'activa'
 
         if ($categorias->isEmpty()) {
             return response()->json([
@@ -27,10 +30,11 @@ class CategoriaPremioController extends Controller
 
     /**
      * Almacena una nueva categoría de premio.
+     * Usamos nuestro Form Request para validación automática.
      */
-    public function store(Request $request)
+    public function store(StoreCategoriaPremioRequest $request)
     {
-        $categoria = CategoriaPremio::create($request->all());
+        $categoria = CategoriaPremio::create($request->validated());
         
         return response()->json([
             'message' => 'Categoría de premio creada exitosamente',
@@ -40,58 +44,34 @@ class CategoriaPremioController extends Controller
 
     /**
      * Muestra la categoría de premio especificada.
+     * Usamos Route Model Binding (CategoriaPremio $categoriaPremio).
+     * Nota: Laravel es inteligente. Como nuestra ruta es 'categoria-premios',
+     * automáticamente buscará un parámetro llamado 'categoria_premio'.
      */
-    public function show($id)
+    public function show(CategoriaPremio $categoriaPremio)
     {
-        $categoria = CategoriaPremio::find($id);
-
-        if (!$categoria) {
-            return response()->json([
-                'message' => 'Categoría de premio no encontrada',
-                'status' => 404
-            ], 404);
-        }
-
-        return response()->json($categoria, 200);
+        return response()->json($categoriaPremio, 200);
     }
 
     /**
      * Actualiza la categoría de premio especificada.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateCategoriaPremioRequest $request, CategoriaPremio $categoriaPremio)
     {
-        $categoria = CategoriaPremio::find($id);
-
-        if (!$categoria) {
-            return response()->json([
-                'message' => 'Categoría de premio no encontrada',
-                'status' => 404
-            ], 404);
-        }
-
-        $categoria->update($request->all());
+        $categoriaPremio->update($request->validated());
 
         return response()->json([
             'message' => 'Categoría de premio actualizada exitosamente',
-            'data' => $categoria
+            'data' => $categoriaPremio
         ], 200);
     }
 
     /**
      * Elimina la categoría de premio especificada.
      */
-    public function destroy($id)
+    public function destroy(CategoriaPremio $categoriaPremio)
     {
-        $categoria = CategoriaPremio::find($id);
-
-        if (!$categoria) {
-            return response()->json([
-                'message' => 'Categoría de premio no encontrada',
-                'status' => 404
-            ], 404);
-        }
-
-        $categoria->delete();
+        $categoriaPremio->delete();
 
         return response()->json([
             'message' => 'Categoría de premio eliminada exitosamente'
