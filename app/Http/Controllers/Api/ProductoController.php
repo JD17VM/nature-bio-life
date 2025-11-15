@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\Producto\StoreProductoRequest;
+use App\Http\Requests\Producto\UpdateProductoRequest;
+
 class ProductoController extends Controller
 {
     /**
@@ -29,9 +32,9 @@ class ProductoController extends Controller
     /**
      * Almacena un nuevo producto.
      */
-    public function store(Request $request)
+    public function store(StoreProductoRequest $request)
     {
-        $producto = Producto::create($request->all());
+        $producto = Producto::create($request->validated());
         
         return response()->json([
             'message' => 'Producto creado exitosamente',
@@ -42,35 +45,20 @@ class ProductoController extends Controller
     /**
      * Muestra el producto especificado.
      */
-    public function show($id)
+    public function show(Producto $producto)
     {
-        $producto = Producto::with('categoria')->find($id);
-
-        if (!$producto) {
-            return response()->json([
-                'message' => 'Producto no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
+        // Cargamos la relación 'categoria' para este producto específico
+        $producto->load('categoria');
+        
         return response()->json($producto, 200);
     }
 
     /**
      * Actualiza el producto especificado.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateProductoRequest $request, Producto $producto)
     {
-        $producto = Producto::find($id);
-
-        if (!$producto) {
-            return response()->json([
-                'message' => 'Producto no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
-        $producto->update($request->all());
+        $producto->update($request->validated());
 
         return response()->json([
             'message' => 'Producto actualizado exitosamente',
@@ -81,17 +69,8 @@ class ProductoController extends Controller
     /**
      * Elimina el producto especificado.
      */
-    public function destroy($id)
+    public function destroy(Producto $producto)
     {
-        $producto = Producto::find($id);
-
-        if (!$producto) {
-            return response()->json([
-                'message' => 'Producto no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
         $producto->delete();
 
         return response()->json([
