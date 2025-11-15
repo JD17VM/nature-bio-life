@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Premio;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\Premio\StorePremioRequest;
+use App\Http\Requests\Premio\UpdatePremioRequest;
+
 class PremioController extends Controller
 {
     /**
@@ -28,9 +31,9 @@ class PremioController extends Controller
     /**
      * Almacena un nuevo premio.
      */
-    public function store(Request $request)
+    public function store(StorePremioRequest $request)
     {
-        $premio = Premio::create($request->all());
+        $premio = Premio::create($request->validated());
         
         return response()->json([
             'message' => 'Premio creado exitosamente',
@@ -41,35 +44,18 @@ class PremioController extends Controller
     /**
      * Muestra el premio especificado.
      */
-    public function show($id)
+    public function show(Premio $premio)
     {
-        $premio = Premio::with('categoriaPremio')->find($id);
-
-        if (!$premio) {
-            return response()->json([
-                'message' => 'Premio no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
+        $premio->load('categoriaPremio');
         return response()->json($premio, 200);
     }
 
     /**
      * Actualiza el premio especificado.
      */
-    public function update(Request $request, $id)
+    public function update(UpdatePremioRequest $request, Premio $premio)
     {
-        $premio = Premio::find($id);
-
-        if (!$premio) {
-            return response()->json([
-                'message' => 'Premio no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
-        $premio->update($request->all());
+        $premio->update($request->validated());
 
         return response()->json([
             'message' => 'Premio actualizado exitosamente',
@@ -80,17 +66,8 @@ class PremioController extends Controller
     /**
      * Elimina el premio especificado.
      */
-    public function destroy($id)
+    public function destroy(Premio $premio)
     {
-        $premio = Premio::find($id);
-
-        if (!$premio) {
-            return response()->json([
-                'message' => 'Premio no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
         $premio->delete();
 
         return response()->json([
