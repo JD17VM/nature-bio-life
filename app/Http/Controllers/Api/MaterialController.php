@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Material;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\Material\StoreMaterialRequest;
+use App\Http\Requests\Material\UpdateMaterialRequest;
+
 class MaterialController extends Controller
 {
     /**
@@ -28,9 +31,9 @@ class MaterialController extends Controller
     /**
      * Almacena un nuevo material.
      */
-    public function store(Request $request)
+    public function store(StoreMaterialRequest $request)
     {
-        $material = Material::create($request->all());
+        $material = Material::create($request->validated());
         
         return response()->json([
             'message' => 'Material creado exitosamente',
@@ -40,58 +43,33 @@ class MaterialController extends Controller
 
     /**
      * Muestra el material especificado.
+     * Usamos Route Model Binding ($materiale)
      */
-    public function show($id)
+    public function show(Material $materiale)
     {
-        $material = Material::with('tipoMaterial')->find($id);
-
-        if (!$material) {
-            return response()->json([
-                'message' => 'Material no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
-        return response()->json($material, 200);
+        $materiale->load('tipoMaterial');
+        return response()->json($materiale, 200);
     }
 
     /**
      * Actualiza el material especificado.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateMaterialRequest $request, Material $materiale)
     {
-        $material = Material::find($id);
-
-        if (!$material) {
-            return response()->json([
-                'message' => 'Material no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
-        $material->update($request->all());
+        $materiale->update($request->validated());
 
         return response()->json([
             'message' => 'Material actualizado exitosamente',
-            'data' => $material
+            'data' => $materiale
         ], 200);
     }
 
     /**
      * Elimina el material especificado.
      */
-    public function destroy($id)
+    public function destroy(Material $materiale)
     {
-        $material = Material::find($id);
-
-        if (!$material) {
-            return response()->json([
-                'message' => 'Material no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
-        $material->delete();
+        $materiale->delete();
 
         return response()->json([
             'message' => 'Material eliminado exitosamente'
