@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Video;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\Video\StoreVideoRequest;
+use App\Http\Requests\Video\UpdateVideoRequest;
+
 class VideoController extends Controller
 {
     /**
@@ -31,9 +34,9 @@ class VideoController extends Controller
     /**
      * Almacena un nuevo video.
      */
-    public function store(Request $request)
+    public function store(StoreVideoRequest $request)
     {
-        $video = Video::create($request->all());
+        $video = Video::create($request->validated());
         
         return response()->json([
             'message' => 'Video creado exitosamente',
@@ -44,35 +47,18 @@ class VideoController extends Controller
     /**
      * Muestra el video especificado.
      */
-    public function show($id)
+    public function show(Video $video)
     {
-        $video = Video::with('categoriaVideo')->find($id);
-
-        if (!$video) {
-            return response()->json([
-                'message' => 'Video no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
+        $video->load('categoriaVideo');
         return response()->json($video, 200);
     }
 
     /**
      * Actualiza el video especificado.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateVideoRequest $request, Video $video)
     {
-        $video = Video::find($id);
-
-        if (!$video) {
-            return response()->json([
-                'message' => 'Video no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
-        $video->update($request->all());
+        $video->update($request->validated());
 
         return response()->json([
             'message' => 'Video actualizado exitosamente',
@@ -83,17 +69,8 @@ class VideoController extends Controller
     /**
      * Elimina el video especificado.
      */
-    public function destroy($id)
+    public function destroy(Video $video)
     {
-        $video = Video::find($id);
-
-        if (!$video) {
-            return response()->json([
-                'message' => 'Video no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
         $video->delete();
 
         return response()->json([
