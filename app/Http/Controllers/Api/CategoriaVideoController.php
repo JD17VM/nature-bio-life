@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\CategoriaVideo;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\CategoriaVideo\StoreCategoriaVideoRequest;
+use App\Http\Requests\CategoriaVideo\UpdateCategoriaVideoRequest;
+
 class CategoriaVideoController extends Controller
 {
     /**
@@ -28,9 +31,9 @@ class CategoriaVideoController extends Controller
     /**
      * Almacena una nueva categoría de video.
      */
-    public function store(Request $request)
+    public function store(StoreCategoriaVideoRequest $request)
     {
-        $categoria = CategoriaVideo::create($request->all());
+        $categoria = CategoriaVideo::create($request->validated());
         
         return response()->json([
             'message' => 'Categoría de video creada exitosamente',
@@ -41,57 +44,30 @@ class CategoriaVideoController extends Controller
     /**
      * Muestra la categoría de video especificada.
      */
-    public function show($id)
+    public function show(CategoriaVideo $categoriaVideo)
     {
-        $categoria = CategoriaVideo::find($id);
-
-        if (!$categoria) {
-            return response()->json([
-                'message' => 'Categoría de video no encontrada',
-                'status' => 404
-            ], 404);
-        }
-
-        return response()->json($categoria, 200);
+        return response()->json($categoriaVideo, 200);
     }
 
     /**
      * Actualiza la categoría de video especificada.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateCategoriaVideoRequest $request, CategoriaVideo $categoriaVideo)
     {
-        $categoria = CategoriaVideo::find($id);
-
-        if (!$categoria) {
-            return response()->json([
-                'message' => 'Categoría de video no encontrada',
-                'status' => 404
-            ], 404);
-        }
-
-        $categoria->update($request->all());
+        $categoriaVideo->update($request->validated());
 
         return response()->json([
             'message' => 'Categoría de video actualizada exitosamente',
-            'data' => $categoria
+            'data' => $categoriaVideo
         ], 200);
     }
 
     /**
      * Elimina la categoría de video especificada.
      */
-    public function destroy($id)
+    public function destroy(CategoriaVideo $categoriaVideo)
     {
-        $categoria = CategoriaVideo::find($id);
-
-        if (!$categoria) {
-            return response()->json([
-                'message' => 'Categoría de video no encontrada',
-                'status' => 404
-            ], 404);
-        }
-
-        $categoria->delete();
+        $categoriaVideo->delete();
 
         return response()->json([
             'message' => 'Categoría de video eliminada exitosamente'
