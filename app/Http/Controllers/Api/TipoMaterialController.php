@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\TipoMaterial;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\TipoMaterial\StoreTipoMaterialRequest;
+use App\Http\Requests\TipoMaterial\UpdateTipoMaterialRequest;
+
 class TipoMaterialController extends Controller
 {
     /**
@@ -28,9 +31,9 @@ class TipoMaterialController extends Controller
     /**
      * Almacena un nuevo tipo de material.
      */
-    public function store(Request $request)
+    public function store(StoreTipoMaterialRequest $request)
     {
-        $tipo = TipoMaterial::create($request->all());
+        $tipo = TipoMaterial::create($request->validated());
         
         return response()->json([
             'message' => 'Tipo de material creado exitosamente',
@@ -41,57 +44,30 @@ class TipoMaterialController extends Controller
     /**
      * Muestra el tipo de material especificado.
      */
-    public function show($id)
+    public function show(TipoMaterial $tipoMateriale) // El parámetro debe coincidir con el nombre de la ruta
     {
-        $tipo = TipoMaterial::find($id);
-
-        if (!$tipo) {
-            return response()->json([
-                'message' => 'Tipo de material no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
-        return response()->json($tipo, 200);
+        return response()->json($tipoMateriale, 200);
     }
 
     /**
      * Actualiza el tipo de material especificado.
      */
-    public function update(Request $request, $id)
+    public function update(UpdateTipoMaterialRequest $request, TipoMaterial $tipoMateriale)
     {
-        $tipo = TipoMaterial::find($id);
-
-        if (!$tipo) {
-            return response()->json([
-                'message' => 'Tipo de material no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
-        $tipo->update($request->all());
+        $tipoMateriale->update($request->validated());
 
         return response()->json([
             'message' => 'Tipo de material actualizado exitosamente',
-            'data' => $tipo
+            'data' => $tipoMateriale
         ], 200);
     }
 
     /**
      * Elimina el tipo de material especificado.
      */
-    public function destroy($id)
+    public function destroy(TipoMaterial $tipoMateriale)
     {
-        $tipo = TipoMaterial::find($id);
-
-        if (!$tipo) {
-            return response()->json([
-                'message' => 'Tipo de material no encontrado',
-                'status' => 404
-            ], 404);
-        }
-
-        $tipo->delete();
+        $tipoMateriale->delete();
 
         return response()->json([
             'message' => 'Tipo de material eliminado exitosamente'
