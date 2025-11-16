@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\ConfiguracionController;
 
+use App\Http\Controllers\Api\AuthController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -39,3 +41,8 @@ Route::apiResource('premios', PremioController::class);
 Route::apiResource('videos', VideoController::class);
 Route::apiResource('materiales', MaterialController::class);
 Route::apiResource('configuraciones', ConfiguracionController::class);
+
+
+// --- RUTAS DE AUTENTICACIÓN ---
+Route::post('/registro', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);

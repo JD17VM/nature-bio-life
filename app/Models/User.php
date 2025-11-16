@@ -8,6 +8,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -18,9 +21,20 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
+        // Campos nuevos
+        'nombre_completo',
         'email',
         'password',
+        'telefono',
+        'dni',
+        'codigo_referido',
+        'direccion',
+        'info_bancaria_encriptada',
+        'activo',
+        'patrocinador_id',
+        
+        // Campos antiguos (ahora 'name' se llama 'nombre_completo')
+        // 'name', // Ya no usamos 'name'
     ];
 
     /**
@@ -31,6 +45,7 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'info_bancaria_encriptada', // Ocultamos info sensible
     ];
 
     /**
@@ -43,6 +58,27 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            // Casts para los campos nuevos
+            'activo' => 'boolean',
+            'bloqueado_hasta' => 'datetime',
         ];
+    }
+
+    // --- RELACIONES DE PATROCINIO ---
+
+    /**
+     * Obtiene el usuario que es patrocinador de este usuario.
+     */
+    public function patrocinador(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'patrocinador_id');
+    }
+
+    /**
+     * Obtiene la lista de usuarios que este usuario ha patrocinado (referidos directos).
+     */
+    public function referidos(): HasMany
+    {
+        return $this->hasMany(User::class, 'patrocinador_id');
     }
 }
