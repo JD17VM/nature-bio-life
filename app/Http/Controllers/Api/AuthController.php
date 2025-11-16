@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+use Illuminate\Http\Request;
+
 class AuthController extends Controller
 {
     /**
@@ -78,6 +80,16 @@ class AuthController extends Controller
             'data' => $user,
             'access_token' => $token,
             'token_type' => 'Bearer',
+        ], 200);
+    }
+
+    public function profile(Request $request)
+    {
+        // Gracias a 'auth:sanctum', Laravel ya sabe quién es el usuario
+        // y lo podemos obtener con $request->user()
+        return response()->json([
+            'message' => 'Perfil obtenido exitosamente',
+            'data' => $request->user()
         ], 200);
     }
 }

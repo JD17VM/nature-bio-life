@@ -30,6 +30,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::middleware('auth:sanctum')->group(function () {
+    // Ruta de prueba de perfil
+    Route::get('/perfil', [AuthController::class, 'profile']);
+});
 
 Route::apiResource('categorias', CategoriaController::class);
 Route::apiResource('categoria-premios', CategoriaPremioController::class);
