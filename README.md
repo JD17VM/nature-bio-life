@@ -1,4 +1,9 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# **Moliplast Web**
+
+<p align="center">
+<img alt="GitHub Repo stars" src="https://img.shields.io/badge/php-%23777BB4.svg?style=for-the-badge&logo=php&logoColor=white" />
+<img alt="GitHub Repo stars" src="https://img.shields.io/badge/laravel-%23FF2D20.svg?style=for-the-badge&logo=laravel&logoColor=white" />
+</p>
 
 <p align="center">
 <a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
@@ -7,60 +12,397 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# Documentación API
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Esta documentación cubre los 9 endpoints de gestión del catálogo. Todos los endpoints están validados. El frontend debe estar preparado para manejar respuestas de error 422.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## ⚙️ 1. Cómo Ejecutar el Servidor
 
-## Learning Laravel
+Para iniciar el servidor de desarrollo de Laravel, ejecuta el siguiente comando en la raíz de tu proyecto:
+```bash
+php artisan serve
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+La API estará disponible en la siguiente URL base:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+**URL Base:** `http://127.0.0.1:8000/api`
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## ❗️ 2. Headers Globales (¡Obligatorio!)
 
-## Laravel Sponsors
+Todas las peticiones (especialmente POST, PUT, DELETE) deben incluir los siguientes dos encabezados (Headers) para asegurar que Laravel responda en formato JSON:
+```json
+{
+  "Accept": "application/json",
+  "Content-Type": "application/json"
+}
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## Endpoints del Catálogo
 
-### Premium Partners
+### 1. Categorías (Productos)
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+**Ruta Base:** `/api/categorias`
 
-## Contributing
+| Método | Ruta    | Descripción                          |
+|--------|---------|--------------------------------------|
+| GET    | /       | Lista todas las categorías activas.  |
+| GET    | /{id}   | Muestra una categoría específica.    |
+| POST   | /       | Crea una nueva categoría.            |
+| PUT    | /{id}   | Actualiza una categoría existente.   |
+| DELETE | /{id}   | Elimina una categoría.               |
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+#### Ejemplos (Categorías)
 
-## Code of Conduct
+**POST /api/categorias (Crear)**
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Body (Request):
+```json
+{
+    "nombre": "Nutrición Deportiva",
+    "descripcion": "Suplementos y vitaminas para atletas."
+}
+```
 
-## Security Vulnerabilities
+Respuesta (201 Created):
+```json
+{
+    "message": "Categoría creada exitosamente",
+    "data": {
+        "id": 1,
+        "nombre": "Nutrición Deportiva",
+        "descripcion": "Suplementos y vitaminas para atletas.",
+        "activa": true,
+        "created_at": "...",
+        "updated_at": "..."
+    }
+}
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Respuesta (422 Error de Validación):
+```json
+{
+    "message": "El nombre de la categoría es obligatorio. (and 1 more error)",
+    "errors": {
+        "nombre": [
+            "El nombre de la categoría es obligatorio.",
+            "Ya existe una categoría con este nombre."
+        ]
+    }
+}
+```
 
-## License
+**PUT /api/categorias/1 (Actualizar)**
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Body (Request): (Solo envías los campos a cambiar)
+```json
+{
+    "activa": false
+}
+```
+
+Respuesta (200 OK):
+```json
+{
+    "message": "Categoría actualizada exitosamente",
+    "data": {
+        "id": 1,
+        "nombre": "Nutrición Deportiva",
+        "activa": false
+    }
+}
+```
+
+**DELETE /api/categorias/1 (Eliminar)**
+
+Respuesta (200 OK):
+```json
+{
+    "message": "Categoría eliminada exitosamente"
+}
+```
+
+### 2. Productos
+
+**Ruta Base:** `/api/productos`
+
+| Método | Ruta    | Descripción                         |
+|--------|---------|-------------------------------------|
+| GET    | /       | Lista todos los productos activos.  |
+| GET    | /{id}   | Muestra un producto específico.     |
+| POST   | /       | Crea un nuevo producto.             |
+| PUT    | /{id}   | Actualiza un producto existente.    |
+| DELETE | /{id}   | Elimina un producto.                |
+
+#### Ejemplos (Productos)
+
+**POST /api/productos (Crear)**
+
+Body (Request): (Recuerda: precio como string)
+```json
+{
+    "nombre": "Proteína Whey 1kg",
+    "descripcion": "Sabor chocolate.",
+    "precio": "75.50",
+    "stock": 100,
+    "puntos": 50,
+    "categoria_id": 1
+}
+```
+
+Respuesta (201 Created):
+```json
+{
+    "message": "Producto creado exitosamente",
+    "data": {
+        "id": 1,
+        "nombre": "Proteína Whey 1kg",
+        "precio": "75.50"
+    }
+}
+```
+
+Respuesta (422 Error de Validación):
+```json
+{
+    "message": "El precio debe tener 2 decimales. (and 1 more error)",
+    "errors": {
+        "precio": [
+            "El precio debe tener 2 decimales."
+        ],
+        "categoria_id": [
+            "La categoría seleccionada no existe o no es válida."
+        ]
+    }
+}
+```
+
+### 3. Categorías de Premios
+
+**Ruta Base:** `/api/categoria-premios`
+
+| Método | Ruta    | Descripción                              |
+|--------|---------|------------------------------------------|
+| GET    | /       | Lista todas las categorías de premios.   |
+| GET    | /{id}   | Muestra una categoría de premio.         |
+| POST   | /       | Crea una nueva categoría de premio.      |
+| PUT    | /{id}   | Actualiza una categoría de premio.       |
+| DELETE | /{id}   | Elimina una categoría de premio.         |
+
+#### Ejemplos (Categorías de Premios)
+
+**POST /api/categoria-premios (Crear)**
+
+Body (Request):
+```json
+{
+    "nombre": "Viajes",
+    "descripcion": "Canje de puntos por viajes."
+}
+```
+
+Respuesta (201 Created):
+```json
+{
+    "message": "Categoría de premio creada exitosamente",
+    "data": { }
+}
+```
+
+### 4. Premios
+
+**Ruta Base:** `/api/premios`
+
+| Método | Ruta    | Descripción                        |
+|--------|---------|------------------------------------|
+| GET    | /       | Lista todos los premios disponibles.|
+| GET    | /{id}   | Muestra un premio específico.      |
+| POST   | /       | Crea un nuevo premio.              |
+| PUT    | /{id}   | Actualiza un premio existente.     |
+| DELETE | /{id}   | Elimina un premio.                 |
+
+#### Ejemplos (Premios)
+
+**POST /api/premios (Crear)**
+
+Body (Request):
+```json
+{
+    "nombre": "Estadía en Hotel",
+    "puntos_requeridos": 10000,
+    "stock": 5,
+    "categoria_premio_id": 1
+}
+```
+
+Respuesta (201 Created):
+```json
+{
+    "message": "Premio creado exitosamente",
+    "data": { }
+}
+```
+
+### 5. Categorías de Videos
+
+**Ruta Base:** `/api/categoria-videos`
+
+| Método | Ruta    | Descripción                                      |
+|--------|---------|--------------------------------------------------|
+| GET    | /       | Lista todas las categorías de videos (ordenadas).|
+| GET    | /{id}   | Muestra una categoría de video.                  |
+| POST   | /       | Crea una nueva categoría de video.               |
+| PUT    | /{id}   | Actualiza una categoría de video.                |
+| DELETE | /{id}   | Elimina una categoría de video.                  |
+
+#### Ejemplos (Categorías de Videos)
+
+**POST /api/categoria-videos (Crear)**
+
+Body (Request):
+```json
+{
+    "nombre": "Capacitación de Producto",
+    "orden": 1
+}
+```
+
+Respuesta (201 Created):
+```json
+{
+    "message": "Categoría de video creada exitosamente",
+    "data": { }
+}
+```
+
+### 6. Videos
+
+**Ruta Base:** `/api/videos`
+
+| Método | Ruta    | Descripción                      |
+|--------|---------|----------------------------------|
+| GET    | /       | Lista todos los videos activos.  |
+| GET    | /{id}   | Muestra un video específico.     |
+| POST   | /       | Crea un nuevo video.             |
+| PUT    | /{id}   | Actualiza un video existente.    |
+| DELETE | /{id}   | Elimina un video.                |
+
+#### Ejemplos (Videos)
+
+**POST /api/videos (Crear)**
+
+Body (Request):
+```json
+{
+    "titulo": "Cómo usar la Proteína Whey",
+    "url": "https://youtube.com/watch?v=12345",
+    "categoria_video_id": 1,
+    "nivel": "Básico"
+}
+```
+
+Respuesta (201 Created):
+```json
+{
+    "message": "Video creado exitosamente",
+    "data": { }
+}
+```
+
+### 7. Tipos de Material
+
+**Ruta Base:** `/api/tipo-materiales`
+
+| Método | Ruta    | Descripción                        |
+|--------|---------|------------------------------------|
+| GET    | /       | Lista todos los tipos de material. |
+| GET    | /{id}   | Muestra un tipo de material.       |
+| POST   | /       | Crea un nuevo tipo de material.    |
+| PUT    | /{id}   | Actualiza un tipo de material.     |
+| DELETE | /{id}   | Elimina un tipo de material.       |
+
+#### Ejemplos (Tipos de Material)
+
+**POST /api/tipo-materiales (Crear)**
+
+Body (Request):
+```json
+{
+    "nombre": "PDF",
+    "extension_permitida": "pdf"
+}
+```
+
+Respuesta (201 Created):
+```json
+{
+    "message": "Tipo de material creado exitosamente",
+    "data": { }
+}
+```
+
+### 8. Materiales
+
+**Ruta Base:** `/api/materiales`
+
+| Método | Ruta    | Descripción                         |
+|--------|---------|-------------------------------------|
+| GET    | /       | Lista todos los materiales activos. |
+| GET    | /{id}   | Muestra un material específico.     |
+| POST   | /       | Crea un nuevo material.             |
+| PUT    | /{id}   | Actualiza un material existente.    |
+| DELETE | /{id}   | Elimina un material.                |
+
+#### Ejemplos (Materiales)
+
+**POST /api/materiales (Crear)**
+
+Body (Request):
+```json
+{
+    "titulo": "Catálogo PDF 2025",
+    "archivo_url": "https://cdn.example.com/catalogo.pdf",
+    "tipo_material_id": 1
+}
+```
+
+Respuesta (201 Created):
+```json
+{
+    "message": "Material creado exitosamente",
+    "data": { }
+}
+```
+
+### 9. Configuraciones
+
+**Ruta Base:** `/api/configuraciones`
+
+| Método | Ruta    | Descripción                              |
+|--------|---------|------------------------------------------|
+| GET    | /       | Lista todas las configuraciones del sistema.|
+| GET    | /{id}   | Muestra una configuración específica.    |
+| POST   | /       | Crea una nueva configuración.            |
+| PUT    | /{id}   | Actualiza una configuración existente.   |
+| DELETE | /{id}   | Elimina una configuración.               |
+
+#### Ejemplos (Configuraciones)
+
+**POST /api/configuraciones (Crear)**
+
+Body (Request):
+```json
+{
+    "clave": "porcentaje_comision",
+    "valor": "10.5",
+    "descripcion": "Porcentaje de comisión para vendedores de nivel 1."
+}
+```
+
+Respuesta (201 Created):
+```json
+{
+    "message": "Configuración creada exitosamente",
+    "data": { }
+}
+```
