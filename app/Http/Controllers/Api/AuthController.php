@@ -40,7 +40,7 @@ class AuthController extends Controller
             'dni' => $datosValidados['dni'] ?? null,
             'direccion' => $datosValidados['direccion'] ?? null,
             'patrocinador_id' => $patrocinadorId,
-            'codigo_referido' => Str::random(10), // Generamos un código de referido único
+            'codigo_referido' => Str::random(10), 
         ]);
 
         // 4. (Opcional) Generar un token inmediatamente después del registro
