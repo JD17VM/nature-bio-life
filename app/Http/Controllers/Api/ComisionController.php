@@ -11,7 +11,6 @@ class ComisionController extends Controller
 {
     public function index()
     {
-        // Traemos comisiones con nombres de vendedor y comprador
         $comisiones = Comision::with(['vendedor:id,nombre_completo', 'comprador:id,nombre_completo'])
             ->latest()
             ->get();
