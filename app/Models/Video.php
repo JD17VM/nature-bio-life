@@ -26,6 +26,8 @@ class Video extends Model
         'activo',
     ];
 
+    protected $appends = ['visto'];
+
     /**
      * Los atributos que deben ser casteados.
      *
@@ -43,5 +45,26 @@ class Video extends Model
     public function categoriaVideo(): BelongsTo
     {
         return $this->belongsTo(CategoriaVideo::class, 'categoria_video_id');
+    }
+
+    public function usuarios()
+    {
+        return $this->belongsToMany(User::class, 'video_user')
+                    ->withPivot(['segundo_actual', 'completado', 'fecha_completado'])
+                    ->withTimestamps();
+    }
+
+    public function getVistoAttribute()
+    {
+        // Si no hay usuario autenticado (ej: acceso público), retorna false
+        if (!auth('sanctum')->check()) {
+            return false;
+        }
+
+        // Verifica en la tabla pivote si este usuario ya lo marcó como completado
+        return $this->usuarios()
+                    ->where('user_id', auth('sanctum')->id())
+                    ->wherePivot('completado', true)
+                    ->exists();
     }
 }

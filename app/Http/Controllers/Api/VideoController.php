@@ -77,4 +77,51 @@ class VideoController extends Controller
             'message' => 'Video eliminado exitosamente'
         ], 200);
     }
+
+    public function guardarProgreso(Request $request, $id)
+    {
+        $request->validate([
+            'segundo_actual' => 'required|integer|min:0',
+            'completado' => 'boolean'
+        ]);
+
+        $video = Video::findOrFail($id);
+        $user = $request->user();
+
+        // syncWithoutDetaching: Si ya existe el registro, lo actualiza; si no, lo crea.
+        // No borra otros videos vistos.
+        $user->videosVistos()->syncWithoutDetaching([
+            $video->id => [
+                'segundo_actual' => $request->segundo_actual,
+                'completado' => $request->completado ?? false,
+                'fecha_completado' => ($request->completado ?? false) ? now() : null
+            ]
+        ]);
+
+        return response()->json(['message' => 'Progreso guardado correctamente']);
+    }
+
+    /**
+     * Muestra el porcentaje de avance del usuario en la capacitación.
+     * RF-090: Mostrar progreso (ej: 15 de 50 videos).
+     */
+    public function estadisticas(Request $request)
+    {
+        $user = $request->user();
+        
+        // 1. Total de videos disponibles y activos en el sistema
+        $totalVideos = Video::where('activo', true)->count();
+        
+        // 2. Total de videos que el usuario ha marcado como 'completado'
+        $videosCompletados = $user->videosVistos()->wherePivot('completado', true)->count();
+        
+        // 3. Cálculo del porcentaje
+        $porcentaje = $totalVideos > 0 ? round(($videosCompletados / $totalVideos) * 100) : 0;
+
+        return response()->json([
+            'total_videos_disponibles' => $totalVideos,
+            'videos_completados' => $videosCompletados,
+            'porcentaje_avance' => $porcentaje . '%'
+        ]);
+    }
 }
