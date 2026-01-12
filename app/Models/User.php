@@ -81,4 +81,11 @@ class User extends Authenticatable
     {
         return $this->hasMany(User::class, 'patrocinador_id');
     }
+
+    public function videosVistos()
+    {
+        return $this->belongsToMany(Video::class, 'video_user')
+                    ->withPivot(['segundo_actual', 'completado', 'fecha_completado'])
+                    ->withTimestamps();
+    }
 }

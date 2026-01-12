@@ -9,8 +9,8 @@ use App\Http\Requests\Auth\RegisterUserRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
@@ -19,31 +19,37 @@ class AuthController extends Controller
      */
     public function register(RegisterUserRequest $request)
     {
-        // 1. La validación ya pasó (gracias a RegisterUserRequest)
         $datosValidados = $request->validated();
 
-        // 2. Buscar al patrocinador (si se proprocionó un código)
+        // 2. Buscar al patrocinador (si se proporcionó)
         $patrocinadorId = null;
-        if ($request->filled('codigo_patrocinador')) {
+        if (!empty($datosValidados['codigo_patrocinador'])) {
             $patrocinador = User::where('codigo_referido', $datosValidados['codigo_patrocinador'])->first();
+            // Nota: Podrías lanzar error si no existe, según lógica de negocio.
+            // Por ahora lo dejamos pasar si no existe (o null).
             if ($patrocinador) {
                 $patrocinadorId = $patrocinador->id;
             }
         }
 
+        // Generar código único (RF-012)
+        do {
+            $codigoReferido = Str::upper(Str::random(10));
+        } while (User::where('codigo_referido', $codigoReferido)->exists());
+
         // 3. Crear el usuario
         $user = User::create([
             'nombre_completo' => $datosValidados['nombre_completo'],
-            'email' => $datosValidados['email'],
-            'password' => Hash::make($datosValidados['password']),
-            'telefono' => $datosValidados['telefono'] ?? null,
-            'dni' => $datosValidados['dni'] ?? null,
-            'direccion' => $datosValidados['direccion'] ?? null,
+            'email'           => $datosValidados['email'],
+            'password'        => Hash::make($datosValidados['password']),
+            'telefono'        => $datosValidados['telefono'] ?? null,
+            'dni'             => $datosValidados['dni'] ?? null,
+            'direccion'       => $datosValidados['direccion'] ?? null,
             'patrocinador_id' => $patrocinadorId,
-            'codigo_referido' => Str::random(10), 
+            'codigo_referido' => $codigoReferido,
         ]);
 
-        // 4. (Opcional) Generar un token inmediatamente después del registro
+        // 4. Generar token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
@@ -55,29 +61,37 @@ class AuthController extends Controller
     }
 
     /**
-     * Maneja el inicio de sesión del vendedor.
+     * Maneja el inicio de sesión (Email o DNI).
      */
     public function login(LoginUserRequest $request)
     {
-        // 1. La validación ya pasó (gracias a LoginUserRequest)
-        $datosValidados = $request->validated();
+        // Se asume que en el request el campo llega como 'email' o un campo genérico 'login'
+        // Si tu frontend envía el campo "email" aunque sea DNI, usamos eso.
+        $loginField = $request->input('email'); 
+        $password = $request->input('password');
 
-        // 2. Intentar autenticar al usuario
-        if (!Auth::attempt($datosValidados)) {
+        // Determinar si es Email o DNI
+        $fieldType = filter_var($loginField, FILTER_VALIDATE_EMAIL) ? 'email' : 'dni';
+
+        // Intentar autenticar
+        if (!Auth::attempt([$fieldType => $loginField, 'password' => $password])) {
             return response()->json([
-                'message' => 'Email o contraseña incorrectos.'
-            ], 401); // 401 = No autorizado
+                'message' => 'Credenciales incorrectas.'
+            ], 401);
         }
 
-        // 3. Si las credenciales son correctas, buscar al usuario
-        $user = User::where('email', $datosValidados['email'])->first();
+        // Obtener usuario autenticado
+        // Auth::user() ya trae el usuario si el attempt funcionó
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
 
-        // 4. Crear y devolver el token
+        // Eliminar tokens anteriores si quieres sesión única (opcional), 
+        // o simplemente crear uno nuevo (permite múltiples dispositivos - RF-006 implied)
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Inicio de sesión exitoso',
-            'data' => $user,
+            'user' => $user,
             'access_token' => $token,
             'token_type' => 'Bearer',
         ], 200);
@@ -85,8 +99,6 @@ class AuthController extends Controller
 
     public function profile(Request $request)
     {
-        // Gracias a 'auth:sanctum', Laravel ya sabe quién es el usuario
-        // y lo podemos obtener con $request->user()
         return response()->json([
             'message' => 'Perfil obtenido exitosamente',
             'data' => $request->user()
