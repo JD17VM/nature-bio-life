@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Comision extends Model
 {
-    // Forzamos el nombre de la tabla por si Laravel intenta usar "comisions"
     protected $table = 'comisiones';
 
     protected $fillable = [

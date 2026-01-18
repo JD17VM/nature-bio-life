@@ -12,6 +12,10 @@ use App\Http\Controllers\Api\PremioController;
 use App\Http\Controllers\Api\VideoController;
 use App\Http\Controllers\Api\MaterialController;
 use App\Http\Controllers\Api\ConfiguracionController;
+use App\Http\Controllers\Api\PedidoController;
+use App\Http\Controllers\Api\ComisionController;
+use App\Http\Controllers\Api\HistorialPuntosController;
+use App\Http\Controllers\Api\CanjePremioController;
 
 use App\Http\Controllers\Api\AuthController;
 
@@ -33,6 +37,11 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     // Ruta de prueba de perfil
     Route::get('/perfil', [AuthController::class, 'profile']);
+
+    Route::get('/notificaciones', [App\Http\Controllers\Api\NotificacionController::class, 'index']);
+    Route::get('/notificaciones/unread', [App\Http\Controllers\Api\NotificacionController::class, 'unread']);
+    Route::put('/notificaciones/{id}/read', [App\Http\Controllers\Api\NotificacionController::class, 'markAsRead']);
+    Route::put('/notificaciones/read-all', [App\Http\Controllers\Api\NotificacionController::class, 'markAllAsRead']);
 });
 
 Route::apiResource('categorias', CategoriaController::class);
@@ -45,6 +54,12 @@ Route::apiResource('premios', PremioController::class);
 Route::apiResource('videos', VideoController::class);
 Route::apiResource('materiales', MaterialController::class);
 Route::apiResource('configuraciones', ConfiguracionController::class);
+Route::apiResource('pedidos', PedidoController::class);
+Route::apiResource('comisiones', ComisionController::class);
+Route::apiResource('historial-puntos', HistorialPuntosController::class)->except(['update', 'destroy']);
+Route::apiResource('canje-premios', CanjePremioController::class);
+
+
 
 
 // --- RUTAS DE AUTENTICACIÓN ---
