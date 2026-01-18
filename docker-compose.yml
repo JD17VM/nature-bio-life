@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # SERVICIO 1: Aplicación Laravel (PHP-FPM)
+  # ========================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    container_name: nature-api
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      # Bind mount del código fuente (hot-reload)
+      - ./:/var/www/html
+      # Bind mount explícito para configuración PHP personalizada (opcional)
+      # - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+    networks:
+      - nature-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # ========================================
+  # SERVICIO 2: Servidor Web Nginx
+  # ========================================
+  nginx:
+    image: nginx:alpine
+    container_name: nature-nginx
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      # Montamos el código para que Nginx pueda servir assets estáticos
+      - ./:/var/www/html
+      # Configuración del servidor
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - nature-network
+    depends_on:
+      - app
+
+  # ========================================
+  # SERVICIO 3: Base de Datos MySQL 8.0
+  # ========================================
+  mysql:
+    image: mysql:8.0
+    container_name: nature-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - nature-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+# ========================================
+# VOLÚMENES Y REDES
+# ========================================
+volumes:
+  mysql-data:
+    driver: local
+    name: nature-mysql-data
+
+networks:
+  nature-network:
+    driver: bridge
