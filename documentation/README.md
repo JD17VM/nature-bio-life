@@ -1,5 +1,6 @@
 
 - [Registro, login y autenticacion de tokens](./registro-login-autenticacion_token.md)
+- [Guía de Manejo de Archivos e Imágenes](./guia-manejo-archivos.md)
 
 ---
 
@@ -20,7 +21,9 @@ La API estará disponible en la siguiente URL base:
 
 ## ❗️ 2. Headers Globales (¡Obligatorio!)
 
-Todas las peticiones (especialmente POST, PUT, DELETE) deben incluir los siguientes dos encabezados (Headers) para asegurar que Laravel responda en formato JSON:
+Todas las peticiones deben incluir el encabezado `Accept` para asegurar respuestas JSON.
+
+**Para peticiones normales (JSON):**
 ```json
 {
   "Accept": "application/json",

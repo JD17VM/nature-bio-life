@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Material;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 use App\Http\Requests\Material\StoreMaterialRequest;
 use App\Http\Requests\Material\UpdateMaterialRequest;
@@ -33,7 +34,15 @@ class MaterialController extends Controller
      */
     public function store(StoreMaterialRequest $request)
     {
-        $material = Material::create($request->validated());
+        $datos = $request->validated();
+
+        if ($request->hasFile('archivo')) {
+            $path = $request->file('archivo')->store('materiales', 'public');
+            $datos['archivo_url'] = $path;
+            unset($datos['archivo']);
+        }
+
+        $material = Material::create($datos);
         
         return response()->json([
             'message' => 'Material creado exitosamente',
@@ -56,7 +65,18 @@ class MaterialController extends Controller
      */
     public function update(UpdateMaterialRequest $request, Material $materiale)
     {
-        $materiale->update($request->validated());
+        $datos = $request->validated();
+
+        if ($request->hasFile('archivo')) {
+            if ($materiale->archivo_url && Storage::disk('public')->exists($materiale->archivo_url)) {
+                Storage::disk('public')->delete($materiale->archivo_url);
+            }
+            $path = $request->file('archivo')->store('materiales', 'public');
+            $datos['archivo_url'] = $path;
+            unset($datos['archivo']);
+        }
+
+        $materiale->update($datos);
 
         return response()->json([
             'message' => 'Material actualizado exitosamente',
@@ -69,6 +89,10 @@ class MaterialController extends Controller
      */
     public function destroy(Material $materiale)
     {
+        if ($materiale->archivo_url && Storage::disk('public')->exists($materiale->archivo_url)) {
+            Storage::disk('public')->delete($materiale->archivo_url);
+        }
+
         $materiale->delete();
 
         return response()->json([

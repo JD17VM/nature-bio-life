@@ -208,13 +208,13 @@ Las rutas del catálogo (Parte 1 de la documentación) han sido actualizadas:
 
 ### 4.1 Ejemplo: Crear un Producto (Protegido)
 
-**Endpoint:** `POST /api/productos`
+**Endpoint:** `POST /api/productos` (Con imagen)
 
 **Headers:** (¡Ahora requiere el token!)
+*Nota: Al subir archivos, usa `multipart/form-data` y omite `Content-Type: application/json`.*
 ```json
 {
   "Accept": "application/json",
-  "Content-Type": "application/json",
   "Authorization": "Bearer [TU_TOKEN_AQUI]"
 }
 ```

@@ -37,7 +37,7 @@ class UpdateProductoRequest extends FormRequest
             'stock' => 'sometimes|required|integer|min:0',
             'puntos' => 'sometimes|required|integer|min:0',
             'categoria_id' => 'sometimes|required|integer|exists:categorias,id',
-            'imagen_url' => 'sometimes|nullable|string|max:255',
+            'imagen' => 'nullable|image|max:2048',
             'destacado' => 'sometimes|boolean',
             'activo' => 'sometimes|boolean',
         ];
