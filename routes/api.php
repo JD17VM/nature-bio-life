@@ -65,3 +65,11 @@ Route::apiResource('canje-premios', CanjePremioController::class);
 // --- RUTAS DE AUTENTICACIÓN ---
 Route::post('/registro', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+
+
+Route::get('/version', function () {
+    return response()->json([
+        'version' => '1.0.0',
+        'mensaje' => '¡Hola desde Producción! El despliegue funciona.'
+    ]);
+});
