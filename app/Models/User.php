@@ -21,7 +21,6 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        // Campos nuevos
         'nombre_completo',
         'email',
         'password',
@@ -32,9 +31,6 @@ class User extends Authenticatable
         'info_bancaria_encriptada',
         'activo',
         'patrocinador_id',
-        
-        // Campos antiguos (ahora 'name' se llama 'nombre_completo')
-        // 'name', // Ya no usamos 'name'
     ];
 
     /**

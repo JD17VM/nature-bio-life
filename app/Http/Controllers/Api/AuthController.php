@@ -25,8 +25,6 @@ class AuthController extends Controller
         $patrocinadorId = null;
         if (!empty($datosValidados['codigo_patrocinador'])) {
             $patrocinador = User::where('codigo_referido', $datosValidados['codigo_patrocinador'])->first();
-            // Nota: Podrías lanzar error si no existe, según lógica de negocio.
-            // Por ahora lo dejamos pasar si no existe (o null).
             if ($patrocinador) {
                 $patrocinadorId = $patrocinador->id;
             }
@@ -66,7 +64,6 @@ class AuthController extends Controller
     public function login(LoginUserRequest $request)
     {
         // Se asume que en el request el campo llega como 'email' o un campo genérico 'login'
-        // Si tu frontend envía el campo "email" aunque sea DNI, usamos eso.
         $loginField = $request->input('email'); 
         $password = $request->input('password');
 

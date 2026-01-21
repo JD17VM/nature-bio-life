@@ -14,7 +14,6 @@ class PedidoController extends Controller
 {
     public function index()
     {
-        // Trae pedidos con sus relaciones
         $pedidos = Pedido::with(['usuario:id,nombre_completo', 'detalles.producto'])
             ->latest()
             ->get();

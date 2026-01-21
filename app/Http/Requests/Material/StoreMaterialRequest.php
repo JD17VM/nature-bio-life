@@ -24,7 +24,7 @@ class StoreMaterialRequest extends FormRequest
         return [
             'titulo' => 'required|string|max:255|unique:materiales',
             'descripcion' => 'nullable|string',
-            'archivo_url' => 'required|string|max:255',
+            'archivo' => 'required|file|max:20480',
             'tipo_material_id' => 'required|integer|exists:tipo_materiales,id',
             'activo' => 'nullable|boolean',
         ];
@@ -38,7 +38,7 @@ class StoreMaterialRequest extends FormRequest
         return [
             'titulo.required' => 'El título del material es obligatorio.',
             'titulo.unique' => 'Ya existe un material con este título.',
-            'archivo_url.required' => 'La URL del archivo es obligatoria.',
+            'archivo.required' => 'El archivo es obligatorio.',
             'tipo_material_id.required' => 'El tipo de material es obligatorio.',
             'tipo_material_id.exists' => 'El tipo de material seleccionado no es válido.',
         ];

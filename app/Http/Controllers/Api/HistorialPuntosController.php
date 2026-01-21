@@ -19,7 +19,7 @@ class HistorialPuntosController extends Controller
         return response()->json(['message' => 'Movimiento registrado', 'data' => $historial], 201);
     }
     
-    public function show(HistorialPuntos $historialPunto) // Ojo con el nombre singular
+    public function show(HistorialPuntos $historialPunto)
     {
         return response()->json($historialPunto);
     }

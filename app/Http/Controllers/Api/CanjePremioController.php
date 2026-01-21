@@ -23,8 +23,7 @@ class CanjePremioController extends Controller
             return DB::transaction(function () use ($request) {
                 $premio = Premio::findOrFail($request->premio_id);
                 
-                // Aquí deberías calcular el saldo actual del usuario (SUMA de historial)
-                // Simplificado para el ejemplo:
+
                 $puntosUsuario = HistorialPuntos::where('user_id', $request->user_id)->sum('puntos');
                 
                 if ($puntosUsuario < $premio->puntos_requeridos) {

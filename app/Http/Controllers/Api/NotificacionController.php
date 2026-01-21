@@ -16,7 +16,6 @@ class NotificacionController extends Controller
         $user = $request->user();
 
         // Obtenemos todas, paginadas
-        // Laravel usa internamente el modelo DatabaseNotification aquí
         $notificaciones = $user->notifications()->paginate(15);
 
         return response()->json([

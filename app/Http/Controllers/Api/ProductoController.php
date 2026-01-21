@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 use App\Http\Requests\Producto\StoreProductoRequest;
 use App\Http\Requests\Producto\UpdateProductoRequest;
@@ -34,7 +35,15 @@ class ProductoController extends Controller
      */
     public function store(StoreProductoRequest $request)
     {
-        $producto = Producto::create($request->validated());
+        $datos = $request->validated();
+
+        if ($request->hasFile('imagen')) {
+            $path = $request->file('imagen')->store('productos', 'public');
+            $datos['imagen_url'] = $path;
+            unset($datos['imagen']); // Quitamos el archivo binario del array
+        }
+
+        $producto = Producto::create($datos);
         
         return response()->json([
             'message' => 'Producto creado exitosamente',
@@ -58,7 +67,19 @@ class ProductoController extends Controller
      */
     public function update(UpdateProductoRequest $request, Producto $producto)
     {
-        $producto->update($request->validated());
+        $datos = $request->validated();
+
+        if ($request->hasFile('imagen')) {
+            // Borrar imagen anterior si existe
+            if ($producto->imagen_url && Storage::disk('public')->exists($producto->imagen_url)) {
+                Storage::disk('public')->delete($producto->imagen_url);
+            }
+            $path = $request->file('imagen')->store('productos', 'public');
+            $datos['imagen_url'] = $path;
+            unset($datos['imagen']);
+        }
+
+        $producto->update($datos);
 
         return response()->json([
             'message' => 'Producto actualizado exitosamente',
@@ -71,6 +92,10 @@ class ProductoController extends Controller
      */
     public function destroy(Producto $producto)
     {
+        if ($producto->imagen_url && Storage::disk('public')->exists($producto->imagen_url)) {
+            Storage::disk('public')->delete($producto->imagen_url);
+        }
+
         $producto->delete();
 
         return response()->json([
