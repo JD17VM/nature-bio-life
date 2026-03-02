@@ -36,6 +36,10 @@ class VideoController extends Controller
      */
     public function store(StoreVideoRequest $request)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $video = Video::create($request->validated());
         
         return response()->json([
@@ -58,6 +62,10 @@ class VideoController extends Controller
      */
     public function update(UpdateVideoRequest $request, Video $video)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $video->update($request->validated());
 
         return response()->json([
@@ -71,6 +79,10 @@ class VideoController extends Controller
      */
     public function destroy(Video $video)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $video->delete();
 
         return response()->json([

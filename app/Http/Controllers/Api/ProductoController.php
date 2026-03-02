@@ -92,6 +92,10 @@ class ProductoController extends Controller
      */
     public function destroy(Producto $producto)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         if ($producto->imagen_url && Storage::disk('public')->exists($producto->imagen_url)) {
             Storage::disk('public')->delete($producto->imagen_url);
         }

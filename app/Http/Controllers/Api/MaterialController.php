@@ -34,6 +34,10 @@ class MaterialController extends Controller
      */
     public function store(StoreMaterialRequest $request)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $datos = $request->validated();
 
         if ($request->hasFile('archivo')) {
@@ -65,6 +69,10 @@ class MaterialController extends Controller
      */
     public function update(UpdateMaterialRequest $request, Material $materiale)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $datos = $request->validated();
 
         if ($request->hasFile('archivo')) {
@@ -89,6 +97,10 @@ class MaterialController extends Controller
      */
     public function destroy(Material $materiale)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         if ($materiale->archivo_url && Storage::disk('public')->exists($materiale->archivo_url)) {
             Storage::disk('public')->delete($materiale->archivo_url);
         }

@@ -73,6 +73,10 @@ class CategoriaController extends Controller
      */
     public function destroy(Categoria $categoria)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         // Ya no necesitamos buscarla.
         $categoria->delete();
 

@@ -3,118 +3,161 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Pedido;
-use App\Models\Producto;
+use Illuminate\Http\Request;
 use App\Http\Requests\Pedido\StorePedidoRequest;
-use App\Http\Requests\Pedido\UpdatePedidoRequest;
+use App\Models\Pedido;
+use App\Models\DetallePedido;
+use App\Models\Producto;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PedidoController extends Controller
 {
-    public function index()
+    /**
+     * Muestra la lista de pedidos del usuario autenticado.
+     * GET /api/pedidos
+     */
+    public function index(Request $request)
     {
-        $pedidos = Pedido::with(['usuario:id,nombre_completo', 'detalles.producto'])
-            ->latest()
-            ->get();
-        return response()->json($pedidos);
+        $user = $request->user();
+        
+        // Obtenemos los pedidos ordenados por fecha (más reciente primero)
+        // Usamos 'with' para traer también los detalles y productos de una vez
+        $query = Pedido::with('detalles.producto')->orderBy('created_at', 'desc');
+
+        // Si NO es administrador, filtramos para que solo vea SUS pedidos
+        if (!$user->isAdmin()) {
+            $query->where('user_id', $user->id);
+        }
+
+        return response()->json($query->get());
     }
 
+    /**
+     * Muestra el detalle de un pedido específico.
+     * GET /api/pedidos/{id}
+     */
+    public function show($id)
+    {
+        $pedido = Pedido::with('detalles.producto')->findOrFail($id);
+
+        // Seguridad: Verificar que el pedido pertenezca al usuario (o que sea admin)
+        if (!auth()->user()->isAdmin() && $pedido->user_id !== auth()->id()) {
+            return response()->json(['message' => 'No tienes permiso para ver este pedido.'], 403);
+        }
+
+        return response()->json($pedido);
+    }
+
+    /**
+     * Crea un nuevo pedido a partir de una lista de productos.
+     */
     public function store(StorePedidoRequest $request)
     {
-        try {
-            // DB::transaction asegura que todo se guarde o nada se guarde
-            return DB::transaction(function () use ($request) {
-                $data = $request->validated();
-                
-                $subtotal = 0;
-                $puntosTotales = 0;
-                $detallesListos = [];
+        $user = $request->user();
+        $inputDetalles = $request->validated()['detalles'];
+        $datosExtra = $request->only(['codigo_transaccion', 'notas']);
 
-                // 1. Procesar cada producto para calcular totales y verificar stock
-                foreach ($data['detalles'] as $item) {
+        // Manejo del archivo de comprobante (si se envía)
+        $pathComprobante = null;
+        if ($request->hasFile('comprobante')) {
+            // Guarda en storage/app/public/comprobantes
+            $pathComprobante = $request->file('comprobante')->store('comprobantes', 'public');
+        }
+
+        try {
+            // Usamos una transacción para asegurar que se guarde todo o nada
+            $resultado = DB::transaction(function () use ($user, $inputDetalles, $datosExtra, $pathComprobante) {
+                
+                $totalPedido = 0;
+                $totalPuntos = 0;
+                $detallesParaGuardar = [];
+
+                // 1. Validar Stock y Calcular Totales (Pre-procesamiento)
+                foreach ($inputDetalles as $item) {
+                    // Bloqueamos el registro para evitar condiciones de carrera en el stock
                     $producto = Producto::lockForUpdate()->find($item['producto_id']);
-                    
+
                     if ($producto->stock < $item['cantidad']) {
-                        throw new \Exception("Stock insuficiente para: " . $producto->nombre);
+                        throw new \Exception("No hay suficiente stock para el producto: {$producto->nombre}");
                     }
 
-                    $lineaSubtotal = $producto->precio * $item['cantidad'];
-                    $lineaPuntos = $producto->puntos * $item['cantidad'];
+                    $subtotal = $producto->precio * $item['cantidad'];
+                    $puntos = $producto->puntos * $item['cantidad'];
 
-                    $subtotal += $lineaSubtotal;
-                    $puntosTotales += $lineaPuntos;
+                    $totalPedido += $subtotal;
+                    $totalPuntos += $puntos;
 
-                    $detallesListos[] = [
-                        'producto_id' => $producto->id,
+                    $detallesParaGuardar[] = [
+                        'producto' => $producto,
                         'cantidad' => $item['cantidad'],
                         'precio_unitario' => $producto->precio,
-                        'subtotal' => $lineaSubtotal,
-                        'puntos_unitarios' => $producto->puntos
+                        'subtotal' => $subtotal,
+                        'puntos_unitarios' => $producto->puntos,
                     ];
-
-                    // Restar del stock
-                    $producto->decrement('stock', $item['cantidad']);
                 }
 
-                $costoEnvio = $data['costo_envio'] ?? 0;
-                $total = $subtotal + $costoEnvio;
-
-                // 2. Crear la cabecera del Pedido
+                // 2. Crear el Pedido (Cabecera)
                 $pedido = Pedido::create([
-                    'numero_pedido' => 'PED-' . strtoupper(Str::random(8)),
-                    'user_id' => $data['user_id'],
-                    'subtotal' => $subtotal,
-                    'costo_envio' => $costoEnvio,
-                    'total' => $total,
-                    'puntos_ganados' => $puntosTotales,
+                    'numero_pedido' => 'ORD-' . strtoupper(Str::random(10)), // Genera un código único
+                    'user_id' => $user->id,
+                    'subtotal' => $totalPedido, // Agregamos el campo faltante
+                    'total' => $totalPedido,
+                    'puntos_ganados' => $totalPuntos,
                     'estado' => 'pendiente',
-                    'notas' => $data['notas'] ?? null
+                    'comprobante_pago' => $pathComprobante,
+                    'codigo_transaccion' => $datosExtra['codigo_transaccion'] ?? null,
+                    'notas' => $datosExtra['notas'] ?? null,
                 ]);
 
-                // 3. Guardar todos los detalles de golpe
-                $pedido->detalles()->createMany($detallesListos);
+                // 3. Guardar Detalles y Actualizar Stock
+                foreach ($detallesParaGuardar as $detalle) {
+                    DetallePedido::create([
+                        'pedido_id' => $pedido->id,
+                        'producto_id' => $detalle['producto']->id,
+                        'cantidad' => $detalle['cantidad'],
+                        'precio_unitario' => $detalle['precio_unitario'],
+                        'subtotal' => $detalle['subtotal'],
+                        'puntos_unitarios' => $detalle['puntos_unitarios'],
+                    ]);
 
-                // 4. Crear estado inicial en el historial
-                $pedido->estados()->create([
-                    'estado' => 'pendiente',
-                    'observaciones' => 'Pedido creado exitosamente'
-                ]);
+                    // Descontar stock
+                    $detalle['producto']->decrement('stock', $detalle['cantidad']);
+                }
 
-                return response()->json([
-                    'message' => 'Pedido creado correctamente', 
-                    'data' => $pedido->load('detalles')
-                ], 201);
+                return $pedido;
             });
 
+            return response()->json(['message' => 'Pedido creado exitosamente', 'data' => $resultado], 201);
+
         } catch (\Exception $e) {
-            return response()->json(['message' => $e->getMessage()], 400);
+            return response()->json(['message' => 'Error al procesar el pedido: ' . $e->getMessage()], 400);
         }
     }
 
-    public function show(Pedido $pedido)
+    /**
+     * Sube el comprobante de pago para un pedido existente.
+     */
+    public function confirmarPago(Request $request, $id)
     {
-        return response()->json($pedido->load(['usuario', 'detalles.producto', 'estados']));
-    }
+        $request->validate([
+            'comprobante' => 'required|image|max:5120', // Máx 5MB
+            'codigo_transaccion' => 'nullable|string|max:255',
+            'notas' => 'nullable|string'
+        ]);
 
-    public function update(UpdatePedidoRequest $request, Pedido $pedido)
-    {
-        $pedido->update($request->validated());
+        // Buscar el pedido y asegurar que pertenezca al usuario autenticado
+        $pedido = Pedido::where('id', $id)->where('user_id', $request->user()->id)->firstOrFail();
 
-        // Si cambió el estado, lo registramos en el historial
-        if ($request->has('estado')) {
-            $pedido->estados()->create([
-                'estado' => $request->estado,
-                'observaciones' => 'Cambio de estado manual'
-            ]);
-        }
+        $path = $request->file('comprobante')->store('comprobantes', 'public');
 
-        return response()->json(['message' => 'Pedido actualizado', 'data' => $pedido]);
-    }
+        $pedido->update([
+            'comprobante_pago' => $path,
+            'codigo_transaccion' => $request->codigo_transaccion,
+            'notas' => $request->notas ? $request->notas : $pedido->notas,
+        ]);
 
-    public function destroy(Pedido $pedido)
-    {
-        $pedido->delete();
-        return response()->json(['message' => 'Pedido eliminado']);
+        return response()->json(['message' => 'Comprobante subido exitosamente. Tu pedido está en verificación.']);
     }
 }

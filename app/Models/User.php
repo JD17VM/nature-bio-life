@@ -31,6 +31,7 @@ class User extends Authenticatable
         'info_bancaria_encriptada',
         'activo',
         'patrocinador_id',
+        'rol',
     ];
 
     /**
@@ -83,5 +84,13 @@ class User extends Authenticatable
         return $this->belongsToMany(Video::class, 'video_user')
                     ->withPivot(['segundo_actual', 'completado', 'fecha_completado'])
                     ->withTimestamps();
+    }
+
+    /**
+     * Verifica si el usuario tiene rol de administrador.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->rol === 'admin';
     }
 }

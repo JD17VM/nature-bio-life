@@ -14,7 +14,14 @@ class CanjePremioController extends Controller
 {
     public function index()
     {
-        return response()->json(CanjePremio::with(['usuario', 'premio'])->latest()->get());
+        $query = CanjePremio::with(['usuario', 'premio'])->latest();
+
+        // Si no es admin, solo ve sus canjes
+        if (! auth()->user()->isAdmin()) {
+            $query->where('user_id', auth()->id());
+        }
+
+        return response()->json($query->get());
     }
 
     public function store(StoreCanjePremioRequest $request)
@@ -62,17 +69,29 @@ class CanjePremioController extends Controller
 
     public function show(CanjePremio $canjePremio)
     {
+        if (! auth()->user()->isAdmin() && $canjePremio->user_id !== auth()->id()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
         return response()->json($canjePremio->load(['usuario', 'premio']));
     }
 
     public function update(UpdateCanjePremioRequest $request, CanjePremio $canjePremio)
     {
+        // Solo admin puede aprobar/rechazar canjes
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $canjePremio->update($request->validated());
         return response()->json(['message' => 'Estado actualizado', 'data' => $canjePremio]);
     }
     
     public function destroy(CanjePremio $canjePremio)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $canjePremio->delete();
         return response()->json(['message' => 'Canje eliminado']);
     }
