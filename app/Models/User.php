@@ -15,6 +15,11 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    // --- DEFINICIÓN DE ROLES ---
+    const ROL_ADMIN = 'admin';
+    const ROL_SOCIO = 'socio';
+    const ROL_VENDEDOR = 'vendedor';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -91,6 +96,22 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->rol === 'admin';
+        return $this->rol === self::ROL_ADMIN;
+    }
+
+    /**
+     * Verifica si el usuario es Socio
+     */
+    public function isSocio(): bool
+    {
+        return $this->rol === self::ROL_SOCIO;
+    }
+
+    /**
+     * Verifica si el usuario es Vendedor
+     */
+    public function isVendedor(): bool
+    {
+        return $this->rol === self::ROL_VENDEDOR;
     }
 }

@@ -48,8 +48,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/notificaciones/read-all', [App\Http\Controllers\Api\NotificacionController::class, 'markAllAsRead']);
 
     // Mover aquí la ruta de pedidos para protegerla con autenticación
-    Route::apiResource('pedidos', PedidoController::class);
+    Route::apiResource('pedidos', PedidoController::class)->except(['update', 'destroy']);
     Route::post('/pedidos/{id}/confirmar-pago', [PedidoController::class, 'confirmarPago']);
+
+    // Rutas protegidas para administración (Crear, Editar, Eliminar)
+    // El controlador verificará si es Admin, Socio o Vendedor
+    Route::apiResource('productos', ProductoController::class)->except(['index', 'show']);
+    Route::apiResource('videos', VideoController::class)->except(['index', 'show']);
+    Route::apiResource('premios', PremioController::class)->except(['index', 'show']);
+    Route::apiResource('materiales', MaterialController::class)->except(['index', 'show']);
+
+    // Rutas operativas protegidas (Requieren Auth)
+    Route::apiResource('comisiones', ComisionController::class);
+    Route::apiResource('historial-puntos', HistorialPuntosController::class)->except(['update', 'destroy']);
+    Route::apiResource('canje-premios', CanjePremioController::class);
 });
 
 Route::apiResource('categorias', CategoriaController::class);
@@ -57,14 +69,13 @@ Route::apiResource('categoria-premios', CategoriaPremioController::class);
 Route::apiResource('categoria-videos', CategoriaVideoController::class);
 Route::apiResource('tipo-materiales', TipoMaterialController::class);
 
-Route::apiResource('productos', ProductoController::class);
-Route::apiResource('premios', PremioController::class);
-Route::apiResource('videos', VideoController::class);
-Route::apiResource('materiales', MaterialController::class);
+// Rutas públicas (Solo ver listados y detalles)
+Route::apiResource('productos', ProductoController::class)->only(['index', 'show']);
+Route::apiResource('premios', PremioController::class)->only(['index', 'show']);
+Route::apiResource('videos', VideoController::class)->only(['index', 'show']);
+Route::apiResource('materiales', MaterialController::class)->only(['index', 'show']);
+
 Route::apiResource('configuraciones', ConfiguracionController::class);
-Route::apiResource('comisiones', ComisionController::class);
-Route::apiResource('historial-puntos', HistorialPuntosController::class)->except(['update', 'destroy']);
-Route::apiResource('canje-premios', CanjePremioController::class);
 
 
 
