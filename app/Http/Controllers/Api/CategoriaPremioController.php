@@ -34,6 +34,10 @@ class CategoriaPremioController extends Controller
      */
     public function store(StoreCategoriaPremioRequest $request)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $categoria = CategoriaPremio::create($request->validated());
         
         return response()->json([
@@ -71,6 +75,10 @@ class CategoriaPremioController extends Controller
      */
     public function destroy(CategoriaPremio $categoriaPremio)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $categoriaPremio->delete();
 
         return response()->json([

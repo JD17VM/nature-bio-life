@@ -33,6 +33,10 @@ class PremioController extends Controller
      */
     public function store(StorePremioRequest $request)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $premio = Premio::create($request->validated());
         
         return response()->json([
@@ -55,6 +59,10 @@ class PremioController extends Controller
      */
     public function update(UpdatePremioRequest $request, Premio $premio)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $premio->update($request->validated());
 
         return response()->json([
@@ -68,6 +76,10 @@ class PremioController extends Controller
      */
     public function destroy(Premio $premio)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $premio->delete();
 
         return response()->json([

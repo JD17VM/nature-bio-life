@@ -45,6 +45,7 @@ class AuthController extends Controller
             'direccion'       => $datosValidados['direccion'] ?? null,
             'patrocinador_id' => $patrocinadorId,
             'codigo_referido' => $codigoReferido,
+            'rol'             => User::ROL_VENDEDOR, // Asignamos el rol por defecto
         ]);
 
         // 4. Generar token

@@ -15,6 +15,11 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    // --- DEFINICIÓN DE ROLES ---
+    const ROL_ADMIN = 'admin';
+    const ROL_SOCIO = 'socio';
+    const ROL_VENDEDOR = 'vendedor';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -31,6 +36,7 @@ class User extends Authenticatable
         'info_bancaria_encriptada',
         'activo',
         'patrocinador_id',
+        'rol',
     ];
 
     /**
@@ -83,5 +89,29 @@ class User extends Authenticatable
         return $this->belongsToMany(Video::class, 'video_user')
                     ->withPivot(['segundo_actual', 'completado', 'fecha_completado'])
                     ->withTimestamps();
+    }
+
+    /**
+     * Verifica si el usuario tiene rol de administrador.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->rol === self::ROL_ADMIN;
+    }
+
+    /**
+     * Verifica si el usuario es Socio
+     */
+    public function isSocio(): bool
+    {
+        return $this->rol === self::ROL_SOCIO;
+    }
+
+    /**
+     * Verifica si el usuario es Vendedor
+     */
+    public function isVendedor(): bool
+    {
+        return $this->rol === self::ROL_VENDEDOR;
     }
 }

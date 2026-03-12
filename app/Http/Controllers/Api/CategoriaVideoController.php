@@ -33,6 +33,10 @@ class CategoriaVideoController extends Controller
      */
     public function store(StoreCategoriaVideoRequest $request)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $categoria = CategoriaVideo::create($request->validated());
         
         return response()->json([
@@ -54,6 +58,10 @@ class CategoriaVideoController extends Controller
      */
     public function update(UpdateCategoriaVideoRequest $request, CategoriaVideo $categoriaVideo)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $categoriaVideo->update($request->validated());
 
         return response()->json([
@@ -67,6 +75,10 @@ class CategoriaVideoController extends Controller
      */
     public function destroy(CategoriaVideo $categoriaVideo)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $categoriaVideo->delete();
 
         return response()->json([

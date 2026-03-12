@@ -33,6 +33,10 @@ class TipoMaterialController extends Controller
      */
     public function store(StoreTipoMaterialRequest $request)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $tipo = TipoMaterial::create($request->validated());
         
         return response()->json([
@@ -54,6 +58,10 @@ class TipoMaterialController extends Controller
      */
     public function update(UpdateTipoMaterialRequest $request, TipoMaterial $tipoMateriale)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $tipoMateriale->update($request->validated());
 
         return response()->json([
@@ -67,6 +75,10 @@ class TipoMaterialController extends Controller
      */
     public function destroy(TipoMaterial $tipoMateriale)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $tipoMateriale->delete();
 
         return response()->json([

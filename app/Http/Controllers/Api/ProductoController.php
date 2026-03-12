@@ -35,6 +35,11 @@ class ProductoController extends Controller
      */
     public function store(StoreProductoRequest $request)
     {
+        // Permitimos acceso solo a Admin
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado. Solo Admin puede crear productos.'], 403);
+        }
+
         $datos = $request->validated();
 
         if ($request->hasFile('imagen')) {
@@ -67,6 +72,11 @@ class ProductoController extends Controller
      */
     public function update(UpdateProductoRequest $request, Producto $producto)
     {
+        // Permitimos acceso solo a Admin
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $datos = $request->validated();
 
         if ($request->hasFile('imagen')) {
@@ -92,6 +102,11 @@ class ProductoController extends Controller
      */
     public function destroy(Producto $producto)
     {
+        // AQUÍ LA DIFERENCIA: Solo el Admin puede eliminar. El Almacenero NO.
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         if ($producto->imagen_url && Storage::disk('public')->exists($producto->imagen_url)) {
             Storage::disk('public')->delete($producto->imagen_url);
         }

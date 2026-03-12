@@ -22,7 +22,8 @@ class DemoDataSeeder extends Seeder
             'password' => Hash::make('password123'),
             'codigo_referido' => 'REF-MASTER',
             'dni' => '12345678',
-            'activo' => true
+            'activo' => true,
+            'rol' => 'admin'
         ]);
 
         // 2. Crear CLIENTE (Referido)
@@ -33,7 +34,8 @@ class DemoDataSeeder extends Seeder
             'codigo_referido' => 'REF-CLIENTE',
             'patrocinador_id' => $patrocinador->id,
             'dni' => '87654321',
-            'activo' => true
+            'activo' => true,
+            'rol' => 'cliente'
         ]);
 
         // 3. Categoría y Productos

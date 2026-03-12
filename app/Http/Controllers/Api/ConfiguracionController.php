@@ -33,6 +33,10 @@ class ConfiguracionController extends Controller
      */
     public function store(StoreConfiguracionRequest $request)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $configuracion = Configuracion::create($request->validated());
         
         return response()->json([
@@ -58,6 +62,10 @@ class ConfiguracionController extends Controller
      */
     public function update(UpdateConfiguracionRequest $request, Configuracion $configuracione)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $configuracione->update($request->validated());
 
         return response()->json([
@@ -71,6 +79,10 @@ class ConfiguracionController extends Controller
      */
     public function destroy(Configuracion $configuracione)
     {
+        if (! auth()->user()->isAdmin()) {
+            return response()->json(['message' => 'No autorizado.'], 403);
+        }
+
         $configuracione->delete();
 
         return response()->json([
