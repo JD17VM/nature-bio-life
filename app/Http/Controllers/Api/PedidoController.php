@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\EstadoPedidoEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Pedido\StorePedidoRequest;
@@ -105,7 +106,7 @@ class PedidoController extends Controller
                     'subtotal' => $totalPedido, // Agregamos el campo faltante
                     'total' => $totalPedido,
                     'puntos_ganados' => $totalPuntos,
-                    'estado' => 'pendiente',
+                    'estado' => EstadoPedidoEnum::PENDIENTE,
                     'comprobante_pago' => $pathComprobante,
                     'codigo_transaccion' => $datosExtra['codigo_transaccion'] ?? null,
                     'notas' => $datosExtra['notas'] ?? null,

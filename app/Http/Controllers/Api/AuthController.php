@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Enums\RolUsuarioEnum;
 use App\Models\User;
 use App\Http\Requests\Auth\LoginUserRequest;
 use App\Http\Requests\Auth\RegisterUserRequest;
@@ -45,7 +46,7 @@ class AuthController extends Controller
             'direccion'       => $datosValidados['direccion'] ?? null,
             'patrocinador_id' => $patrocinadorId,
             'codigo_referido' => $codigoReferido,
-            'rol'             => User::ROL_VENDEDOR, // Asignamos el rol por defecto
+            'rol'             => RolUsuarioEnum::VENDEDOR,
         ]);
 
         // 4. Generar token

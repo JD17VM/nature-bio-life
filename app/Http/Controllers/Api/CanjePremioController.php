@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\EstadoCanjeEnum;
 use App\Http\Controllers\Controller;
 use App\Models\CanjePremio;
 use App\Models\Premio;
@@ -42,7 +43,7 @@ class CanjePremioController extends Controller
                     'user_id' => $request->user_id,
                     'premio_id' => $premio->id,
                     'puntos_utilizados' => $premio->puntos_requeridos,
-                    'estado' => 'pendiente',
+                    'estado' => EstadoCanjeEnum::PENDIENTE,
                     'observaciones' => $request->observaciones
                 ]);
 
