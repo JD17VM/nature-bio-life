@@ -6,6 +6,8 @@ use App\Enums\EstadoPedidoEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Pedido\StorePedidoRequest;
+use App\Http\Requests\Pedido\UpdateEstadoPedidoRequest;
+use App\Models\EstadoPedido;
 use App\Models\Pedido;
 use App\Models\DetallePedido;
 use App\Models\Producto;
@@ -135,6 +137,46 @@ class PedidoController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al procesar el pedido: ' . $e->getMessage()], 400);
         }
+    }
+
+    /**
+     * Actualiza el estado de un pedido (solo Admin).
+     * PATCH /api/pedidos/{id}/estado
+     */
+    public function actualizarEstado(UpdateEstadoPedidoRequest $request, $id)
+    {
+        $pedido = Pedido::with('detalles.producto')->findOrFail($id);
+
+        $estadoActual = $pedido->estado;                                    // EstadoPedidoEnum
+        $nuevoEstado  = EstadoPedidoEnum::from($request->input('estado'));  // EstadoPedidoEnum
+
+        // Validar que la transición sea permitida
+        if (!$estadoActual->puedeCambiarA($nuevoEstado)) {
+            return response()->json([
+                'message' => "No se puede cambiar el estado de \"{$estadoActual->label()}\" a \"{$nuevoEstado->label()}\".",
+                'transiciones_permitidas' => array_map(
+                    fn($e) => ['valor' => $e->value, 'label' => $e->label()],
+                    $estadoActual->transicionesPermitidas()
+                ),
+            ], 422);
+        }
+
+        DB::transaction(function () use ($pedido, $nuevoEstado, $request) {
+            // 1. Actualizar estado en el pedido
+            $pedido->update(['estado' => $nuevoEstado]);
+
+            // 2. Registrar en el historial de estados
+            EstadoPedido::create([
+                'pedido_id'     => $pedido->id,
+                'estado'        => $nuevoEstado,
+                'observaciones' => $request->input('observaciones'),
+            ]);
+        });
+
+        return response()->json([
+            'message' => "Estado del pedido actualizado a \"{$nuevoEstado->label()}\" exitosamente.",
+            'data'    => $pedido->fresh(['detalles.producto', 'estados']),
+        ], 200);
     }
 
     /**

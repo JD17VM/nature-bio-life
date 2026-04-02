@@ -36,8 +36,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Ruta de prueba de perfil
     Route::get('/perfil', [AuthController::class, 'profile']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     // Ruta del Dashboard (Inicio)
     Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Mover aquí la ruta de pedidos para protegerla con autenticación
     Route::apiResource('pedidos', PedidoController::class)->except(['update', 'destroy']);
     Route::post('/pedidos/{id}/confirmar-pago', [PedidoController::class, 'confirmarPago']);
+    Route::patch('/pedidos/{id}/estado', [PedidoController::class, 'actualizarEstado']);
 
     // Rutas protegidas para administración (Crear, Editar, Eliminar)
     // El controlador verificará si es Admin, Socio o Vendedor
