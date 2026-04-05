@@ -15,17 +15,13 @@ class ProductoController extends Controller
     /**
      * Muestra una lista de los productos activos.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Eager loading de la relación 'categoria'
-        $productos = Producto::with('categoria')->where('activo', true)->get();
+        $perPage = min((int) $request->query('per_page', 15), 100);
 
-        if ($productos->isEmpty()) {
-            return response()->json([
-                'message' => 'No hay productos registrados',
-                'status' => 404
-            ], 404);
-        }
+        $productos = Producto::with('categoria')
+            ->where('activo', true)
+            ->paginate($perPage);
 
         return response()->json($productos, 200);
     }

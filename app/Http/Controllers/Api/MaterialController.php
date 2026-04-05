@@ -15,16 +15,13 @@ class MaterialController extends Controller
     /**
      * Muestra una lista de los materiales activos.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $materiales = Material::with('tipoMaterial')->where('activo', true)->get();
+        $perPage = min((int) $request->query('per_page', 15), 100);
 
-        if ($materiales->isEmpty()) {
-            return response()->json([
-                'message' => 'No hay materiales registrados',
-                'status' => 404
-            ], 404);
-        }
+        $materiales = Material::with('tipoMaterial')
+            ->where('activo', true)
+            ->paginate($perPage);
 
         return response()->json($materiales, 200);
     }

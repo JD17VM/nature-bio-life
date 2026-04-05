@@ -14,19 +14,14 @@ class VideoController extends Controller
     /**
      * Muestra una lista de los videos activos.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $videos = Video::with('categoriaVideo')
-                       ->where('activo', true)
-                       ->orderBy('created_at', 'desc')
-                       ->get();
+        $perPage = min((int) $request->query('per_page', 15), 100);
 
-        if ($videos->isEmpty()) {
-            return response()->json([
-                'message' => 'No hay videos registrados',
-                'status' => 404
-            ], 404);
-        }
+        $videos = Video::with('categoriaVideo')
+            ->where('activo', true)
+            ->orderBy('created_at', 'desc')
+            ->paginate($perPage);
 
         return response()->json($videos, 200);
     }

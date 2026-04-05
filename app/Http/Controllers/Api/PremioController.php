@@ -14,16 +14,13 @@ class PremioController extends Controller
     /**
      * Muestra una lista de los premios disponibles.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $premios = Premio::with('categoriaPremio')->where('disponible', true)->get();
+        $perPage = min((int) $request->query('per_page', 15), 100);
 
-        if ($premios->isEmpty()) {
-            return response()->json([
-                'message' => 'No hay premios disponibles',
-                'status' => 404
-            ], 404);
-        }
+        $premios = Premio::with('categoriaPremio')
+            ->where('disponible', true)
+            ->paginate($perPage);
 
         return response()->json($premios, 200);
     }

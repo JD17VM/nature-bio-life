@@ -23,18 +23,16 @@ class PedidoController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-        
-        // Obtenemos los pedidos ordenados por fecha (más reciente primero)
-        // Usamos 'with' para traer también los detalles y productos de una vez
+        $user    = $request->user();
+        $perPage = min((int) $request->query('per_page', 15), 100);
+
         $query = Pedido::with('detalles.producto')->orderBy('created_at', 'desc');
 
-        // Si NO es administrador, filtramos para que solo vea SUS pedidos
         if (!$user->isAdmin()) {
             $query->where('user_id', $user->id);
         }
 
-        return response()->json($query->get());
+        return response()->json($query->paginate($perPage));
     }
 
     /**
