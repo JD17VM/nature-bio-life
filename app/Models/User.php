@@ -80,6 +80,11 @@ class User extends Authenticatable
         return $this->hasMany(User::class, 'patrocinador_id');
     }
 
+    public function pedidos(): HasMany
+    {
+        return $this->hasMany(Pedido::class, 'user_id');
+    }
+
     public function videosVistos()
     {
         return $this->belongsToMany(Video::class, 'video_user')

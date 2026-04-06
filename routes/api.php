@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ComisionController;
 use App\Http\Controllers\Api\HistorialPuntosController;
 use App\Http\Controllers\Api\CanjePremioController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ReferidoController;
 
 use App\Http\Controllers\Api\AuthController;
 
@@ -58,6 +59,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('videos', VideoController::class)->except(['index', 'show']);
     Route::apiResource('premios', PremioController::class)->except(['index', 'show']);
     Route::apiResource('materiales', MaterialController::class)->except(['index', 'show']);
+
+    // Referidos del usuario autenticado
+    Route::get('/referidos', [ReferidoController::class, 'index']);
+    Route::get('/referidos/{id}', [ReferidoController::class, 'show']);
 
     // Rutas operativas protegidas (Requieren Auth)
     Route::apiResource('comisiones', ComisionController::class);
