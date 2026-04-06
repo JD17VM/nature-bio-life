@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\EstadoComisionEnum;
 use App\Enums\EstadoPedidoEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Pedido\StorePedidoRequest;
 use App\Http\Requests\Pedido\UpdateEstadoPedidoRequest;
+use App\Models\Comision;
+use App\Models\Configuracion;
 use App\Models\EstadoPedido;
 use App\Models\Pedido;
 use App\Models\DetallePedido;
@@ -169,12 +172,67 @@ class PedidoController extends Controller
                 'estado'        => $nuevoEstado,
                 'observaciones' => $request->input('observaciones'),
             ]);
+
+            // 3. Lógica de negocio según el nuevo estado
+            if ($nuevoEstado === EstadoPedidoEnum::ENTREGADO) {
+                $this->generarComisionReferido($pedido);
+            }
+
+            if ($nuevoEstado === EstadoPedidoEnum::CANCELADO) {
+                $this->anularComisionesPendientes($pedido);
+            }
         });
 
         return response()->json([
             'message' => "Estado del pedido actualizado a \"{$nuevoEstado->label()}\" exitosamente.",
             'data'    => $pedido->fresh(['detalles.producto', 'estados']),
         ], 200);
+    }
+
+    /**
+     * Genera la comisión para el patrocinador cuando un pedido es entregado.
+     * Solo se genera si el comprador tiene patrocinador y aún no existe comisión para este pedido.
+     */
+    private function generarComisionReferido(Pedido $pedido): void
+    {
+        // Cargar el usuario comprador con su patrocinador
+        $comprador = $pedido->usuario()->with('patrocinador')->first();
+
+        // Si el comprador no tiene patrocinador, no hay comisión que generar
+        if (!$comprador?->patrocinador_id) {
+            return;
+        }
+
+        // Evitar duplicados: si ya existe comisión para este pedido, no crear otra
+        $yaExiste = Comision::where('pedido_id', $pedido->id)->exists();
+        if ($yaExiste) {
+            return;
+        }
+
+        // Obtener el porcentaje de comisión desde configuraciones (default 10%)
+        $config      = Configuracion::where('clave', 'porcentaje_comision')->first();
+        $porcentaje  = $config ? (float) $config->valor : 10.0;
+        $montoCompra = (float) $pedido->total;
+
+        Comision::create([
+            'vendedor_id'    => $comprador->patrocinador_id,
+            'comprador_id'   => $comprador->id,
+            'pedido_id'      => $pedido->id,
+            'monto_compra'   => $montoCompra,
+            'porcentaje'     => $porcentaje,
+            'monto_comision' => round($montoCompra * $porcentaje / 100, 2),
+            'estado'         => EstadoComisionEnum::PENDIENTE,
+        ]);
+    }
+
+    /**
+     * Anula todas las comisiones pendientes asociadas a un pedido cancelado.
+     */
+    private function anularComisionesPendientes(Pedido $pedido): void
+    {
+        Comision::where('pedido_id', $pedido->id)
+            ->where('estado', EstadoComisionEnum::PENDIENTE)
+            ->update(['estado' => EstadoComisionEnum::ANULADA]);
     }
 
     /**
