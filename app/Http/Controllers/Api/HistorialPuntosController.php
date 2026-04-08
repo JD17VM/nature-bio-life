@@ -5,18 +5,21 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\HistorialPuntos;
 use App\Http\Requests\HistorialPuntos\StoreHistorialPuntosRequest;
+use Illuminate\Http\Request;
 
 class HistorialPuntosController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = min((int) $request->query('per_page', 15), 100);
+
         $query = HistorialPuntos::with('usuario:id,nombre_completo')->latest();
 
         if (! auth()->user()->isAdmin()) {
             $query->where('user_id', auth()->id());
         }
 
-        return response()->json($query->get());
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(StoreHistorialPuntosRequest $request)

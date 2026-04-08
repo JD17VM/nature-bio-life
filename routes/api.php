@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\ComisionController;
 use App\Http\Controllers\Api\HistorialPuntosController;
 use App\Http\Controllers\Api\CanjePremioController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ReferidoController;
 
 use App\Http\Controllers\Api\AuthController;
 
@@ -36,8 +37,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Ruta de prueba de perfil
     Route::get('/perfil', [AuthController::class, 'profile']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
     // Ruta del Dashboard (Inicio)
     Route::get('/dashboard', [DashboardController::class, 'index']);
@@ -50,6 +51,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Mover aquí la ruta de pedidos para protegerla con autenticación
     Route::apiResource('pedidos', PedidoController::class)->except(['update', 'destroy']);
     Route::post('/pedidos/{id}/confirmar-pago', [PedidoController::class, 'confirmarPago']);
+    Route::patch('/pedidos/{id}/estado', [PedidoController::class, 'actualizarEstado']);
 
     // Rutas protegidas para administración (Crear, Editar, Eliminar)
     // El controlador verificará si es Admin, Socio o Vendedor
@@ -57,6 +59,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('videos', VideoController::class)->except(['index', 'show']);
     Route::apiResource('premios', PremioController::class)->except(['index', 'show']);
     Route::apiResource('materiales', MaterialController::class)->except(['index', 'show']);
+
+    // Referidos del usuario autenticado
+    Route::get('/referidos', [ReferidoController::class, 'index']);
+    Route::get('/referidos/{id}', [ReferidoController::class, 'show']);
 
     // Rutas operativas protegidas (Requieren Auth)
     Route::apiResource('comisiones', ComisionController::class);

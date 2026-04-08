@@ -8,17 +8,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+use App\Enums\RolUsuarioEnum;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
-
-    // --- DEFINICIÓN DE ROLES ---
-    const ROL_ADMIN = 'admin';
-    const ROL_SOCIO = 'socio';
-    const ROL_VENDEDOR = 'vendedor';
 
     /**
      * The attributes that are mass assignable.
@@ -35,6 +31,7 @@ class User extends Authenticatable
         'direccion',
         'info_bancaria_encriptada',
         'activo',
+        'puntos_saldo',
         'patrocinador_id',
         'rol',
     ];
@@ -59,10 +56,11 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-            // Casts para los campos nuevos
-            'activo' => 'boolean',
+            'password'          => 'hashed',
+            'activo'        => 'boolean',
+            'puntos_saldo'  => 'integer',
             'bloqueado_hasta' => 'datetime',
+            'rol'           => RolUsuarioEnum::class,
         ];
     }
 
@@ -84,6 +82,11 @@ class User extends Authenticatable
         return $this->hasMany(User::class, 'patrocinador_id');
     }
 
+    public function pedidos(): HasMany
+    {
+        return $this->hasMany(Pedido::class, 'user_id');
+    }
+
     public function videosVistos()
     {
         return $this->belongsToMany(Video::class, 'video_user')
@@ -91,27 +94,18 @@ class User extends Authenticatable
                     ->withTimestamps();
     }
 
-    /**
-     * Verifica si el usuario tiene rol de administrador.
-     */
     public function isAdmin(): bool
     {
-        return $this->rol === self::ROL_ADMIN;
+        return $this->rol === RolUsuarioEnum::ADMIN;
     }
 
-    /**
-     * Verifica si el usuario es Socio
-     */
     public function isSocio(): bool
     {
-        return $this->rol === self::ROL_SOCIO;
+        return $this->rol === RolUsuarioEnum::SOCIO;
     }
 
-    /**
-     * Verifica si el usuario es Vendedor
-     */
     public function isVendedor(): bool
     {
-        return $this->rol === self::ROL_VENDEDOR;
+        return $this->rol === RolUsuarioEnum::VENDEDOR;
     }
 }

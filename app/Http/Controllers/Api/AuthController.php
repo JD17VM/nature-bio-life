@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Enums\RolUsuarioEnum;
 use App\Models\User;
 use App\Http\Requests\Auth\LoginUserRequest;
 use App\Http\Requests\Auth\RegisterUserRequest;
@@ -45,17 +46,17 @@ class AuthController extends Controller
             'direccion'       => $datosValidados['direccion'] ?? null,
             'patrocinador_id' => $patrocinadorId,
             'codigo_referido' => $codigoReferido,
-            'rol'             => User::ROL_VENDEDOR, // Asignamos el rol por defecto
+            'rol'             => RolUsuarioEnum::VENDEDOR,
         ]);
 
         // 4. Generar token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => '¡Vendedor registrado exitosamente!',
-            'data' => $user,
+            'message'      => '¡Vendedor registrado exitosamente!',
+            'user'         => $this->formatearUsuario($user),
             'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token_type'   => 'Bearer',
         ], 201);
     }
 
@@ -64,42 +65,71 @@ class AuthController extends Controller
      */
     public function login(LoginUserRequest $request)
     {
-        // Se asume que en el request el campo llega como 'email' o un campo genérico 'login'
-        $loginField = $request->input('email'); 
-        $password = $request->input('password');
+        $loginField = $request->input('email');
+        $password   = $request->input('password');
 
-        // Determinar si es Email o DNI
         $fieldType = filter_var($loginField, FILTER_VALIDATE_EMAIL) ? 'email' : 'dni';
 
-        // Intentar autenticar
         if (!Auth::attempt([$fieldType => $loginField, 'password' => $password])) {
             return response()->json([
                 'message' => 'Credenciales incorrectas.'
             ], 401);
         }
 
-        // Obtener usuario autenticado
-        // Auth::user() ya trae el usuario si el attempt funcionó
         /** @var \App\Models\User $user */
-        $user = Auth::user();
-
-        // Eliminar tokens anteriores si quieres sesión única (opcional), 
-        // o simplemente crear uno nuevo (permite múltiples dispositivos - RF-006 implied)
+        $user  = Auth::user();
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Inicio de sesión exitoso',
-            'user' => $user,
+            'message'      => 'Inicio de sesión exitoso',
+            'user'         => $this->formatearUsuario($user),
             'access_token' => $token,
-            'token_type' => 'Bearer',
+            'token_type'   => 'Bearer',
         ], 200);
     }
 
+    /**
+     * Retorna el perfil del usuario autenticado.
+     */
     public function profile(Request $request)
     {
         return response()->json([
             'message' => 'Perfil obtenido exitosamente',
-            'data' => $request->user()
+            'user'    => $this->formatearUsuario($request->user()),
         ], 200);
+    }
+
+    /**
+     * Cierra la sesión revocando el token actual.
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Sesión cerrada exitosamente.',
+        ], 200);
+    }
+
+    /**
+     * Devuelve los campos del usuario que siempre debe recibir el frontend.
+     */
+    private function formatearUsuario(User $user): array
+    {
+        return [
+            'id'              => $user->id,
+            'nombre_completo' => $user->nombre_completo,
+            'email'           => $user->email,
+            'telefono'        => $user->telefono,
+            'dni'             => $user->dni,
+            'direccion'       => $user->direccion,
+            'rol'             => $user->rol->value,
+            'rol_label'       => $user->rol->label(),
+            'codigo_referido' => $user->codigo_referido,
+            'patrocinador_id' => $user->patrocinador_id,
+            'puntos_saldo'    => $user->puntos_saldo,
+            'activo'          => $user->activo,
+            'created_at'      => $user->created_at,
+        ];
     }
 }

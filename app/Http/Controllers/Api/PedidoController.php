@@ -2,9 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\EstadoComisionEnum;
+use App\Enums\EstadoPedidoEnum;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Requests\Pedido\StorePedidoRequest;
+use App\Http\Requests\Pedido\UpdateEstadoPedidoRequest;
+use App\Models\Comision;
+use App\Models\Configuracion;
+use App\Models\EstadoPedido;
+use App\Models\HistorialPuntos;
 use App\Models\Pedido;
 use App\Models\DetallePedido;
 use App\Models\Producto;
@@ -20,18 +27,16 @@ class PedidoController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-        
-        // Obtenemos los pedidos ordenados por fecha (más reciente primero)
-        // Usamos 'with' para traer también los detalles y productos de una vez
+        $user    = $request->user();
+        $perPage = min((int) $request->query('per_page', 15), 100);
+
         $query = Pedido::with('detalles.producto')->orderBy('created_at', 'desc');
 
-        // Si NO es administrador, filtramos para que solo vea SUS pedidos
         if (!$user->isAdmin()) {
             $query->where('user_id', $user->id);
         }
 
-        return response()->json($query->get());
+        return response()->json($query->paginate($perPage));
     }
 
     /**
@@ -105,7 +110,7 @@ class PedidoController extends Controller
                     'subtotal' => $totalPedido, // Agregamos el campo faltante
                     'total' => $totalPedido,
                     'puntos_ganados' => $totalPuntos,
-                    'estado' => 'pendiente',
+                    'estado' => EstadoPedidoEnum::PENDIENTE,
                     'comprobante_pago' => $pathComprobante,
                     'codigo_transaccion' => $datosExtra['codigo_transaccion'] ?? null,
                     'notas' => $datosExtra['notas'] ?? null,
@@ -134,6 +139,142 @@ class PedidoController extends Controller
         } catch (\Exception $e) {
             return response()->json(['message' => 'Error al procesar el pedido: ' . $e->getMessage()], 400);
         }
+    }
+
+    /**
+     * Actualiza el estado de un pedido (solo Admin).
+     * PATCH /api/pedidos/{id}/estado
+     */
+    public function actualizarEstado(UpdateEstadoPedidoRequest $request, $id)
+    {
+        $pedido = Pedido::with('detalles.producto')->findOrFail($id);
+
+        $estadoActual = $pedido->estado;                                    // EstadoPedidoEnum
+        $nuevoEstado  = EstadoPedidoEnum::from($request->input('estado'));  // EstadoPedidoEnum
+
+        // Validar que la transición sea permitida
+        if (!$estadoActual->puedeCambiarA($nuevoEstado)) {
+            return response()->json([
+                'message' => "No se puede cambiar el estado de \"{$estadoActual->label()}\" a \"{$nuevoEstado->label()}\".",
+                'transiciones_permitidas' => array_map(
+                    fn($e) => ['valor' => $e->value, 'label' => $e->label()],
+                    $estadoActual->transicionesPermitidas()
+                ),
+            ], 422);
+        }
+
+        DB::transaction(function () use ($pedido, $nuevoEstado, $request) {
+            // 1. Actualizar estado en el pedido
+            $pedido->update(['estado' => $nuevoEstado]);
+
+            // 2. Registrar en el historial de estados
+            EstadoPedido::create([
+                'pedido_id'     => $pedido->id,
+                'estado'        => $nuevoEstado,
+                'observaciones' => $request->input('observaciones'),
+            ]);
+
+            // 3. Lógica de negocio según el nuevo estado
+            if ($nuevoEstado === EstadoPedidoEnum::ENTREGADO) {
+                $this->acreditarPuntos($pedido);
+                $this->generarComisionReferido($pedido);
+            }
+
+            if ($nuevoEstado === EstadoPedidoEnum::CANCELADO) {
+                $this->anularComisionesPendientes($pedido);
+            }
+        });
+
+        return response()->json([
+            'message' => "Estado del pedido actualizado a \"{$nuevoEstado->label()}\" exitosamente.",
+            'data'    => $pedido->fresh(['detalles.producto', 'estados']),
+        ], 200);
+    }
+
+    /**
+     * Acredita los puntos del pedido al saldo del comprador y registra el movimiento.
+     * Solo se ejecuta si el pedido aún no tiene puntos acreditados.
+     */
+    private function acreditarPuntos(Pedido $pedido): void
+    {
+        $puntosGanados = (int) $pedido->puntos_ganados;
+
+        if ($puntosGanados <= 0) {
+            return;
+        }
+
+        // Evitar doble acreditación si ya existe un registro de ingreso para este pedido
+        $yaAcreditado = HistorialPuntos::where('pedido_id', $pedido->id)
+            ->where('tipo', 'ingreso')
+            ->exists();
+
+        if ($yaAcreditado) {
+            return;
+        }
+
+        $comprador      = $pedido->usuario()->lockForUpdate()->first();
+        $balanceAnterior = $comprador->puntos_saldo;
+        $balanceNuevo    = $balanceAnterior + $puntosGanados;
+
+        // Actualizar saldo del usuario
+        $comprador->update(['puntos_saldo' => $balanceNuevo]);
+
+        // Registrar movimiento en historial
+        HistorialPuntos::create([
+            'user_id'         => $comprador->id,
+            'pedido_id'       => $pedido->id,
+            'puntos'          => $puntosGanados,
+            'tipo'            => 'ingreso',
+            'balance_anterior' => $balanceAnterior,
+            'balance_nuevo'    => $balanceNuevo,
+            'descripcion'     => "Puntos por pedido #{$pedido->numero_pedido}",
+        ]);
+    }
+
+    /**
+     * Genera la comisión para el patrocinador cuando un pedido es entregado.
+     * Solo se genera si el comprador tiene patrocinador y aún no existe comisión para este pedido.
+     */
+    private function generarComisionReferido(Pedido $pedido): void
+    {
+        // Cargar el usuario comprador con su patrocinador
+        $comprador = $pedido->usuario()->with('patrocinador')->first();
+
+        // Si el comprador no tiene patrocinador, no hay comisión que generar
+        if (!$comprador?->patrocinador_id) {
+            return;
+        }
+
+        // Evitar duplicados: si ya existe comisión para este pedido, no crear otra
+        $yaExiste = Comision::where('pedido_id', $pedido->id)->exists();
+        if ($yaExiste) {
+            return;
+        }
+
+        // Obtener el porcentaje de comisión desde configuraciones (default 10%)
+        $config      = Configuracion::where('clave', 'porcentaje_comision')->first();
+        $porcentaje  = $config ? (float) $config->valor : 10.0;
+        $montoCompra = (float) $pedido->total;
+
+        Comision::create([
+            'vendedor_id'    => $comprador->patrocinador_id,
+            'comprador_id'   => $comprador->id,
+            'pedido_id'      => $pedido->id,
+            'monto_compra'   => $montoCompra,
+            'porcentaje'     => $porcentaje,
+            'monto_comision' => round($montoCompra * $porcentaje / 100, 2),
+            'estado'         => EstadoComisionEnum::PENDIENTE,
+        ]);
+    }
+
+    /**
+     * Anula todas las comisiones pendientes asociadas a un pedido cancelado.
+     */
+    private function anularComisionesPendientes(Pedido $pedido): void
+    {
+        Comision::where('pedido_id', $pedido->id)
+            ->where('estado', EstadoComisionEnum::PENDIENTE)
+            ->update(['estado' => EstadoComisionEnum::ANULADA]);
     }
 
     /**

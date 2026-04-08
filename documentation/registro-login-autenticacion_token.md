@@ -58,15 +58,19 @@ Crea un nuevo vendedor y devuelve sus datos junto con un primer token de autenti
 ```json
 {
     "message": "¡Vendedor registrado exitosamente!",
-    "data": {
+    "user": {
+        "id": 1,
         "nombre_completo": "Vendedor de Prueba",
         "email": "vendedor@example.com",
         "telefono": "987654321",
         "dni": "12345678",
         "direccion": "Av. Siempre Viva 123",
+        "rol": "vendedor",
+        "rol_label": "Vendedor",
+        "codigo_referido": "ABCDEF1234",
         "patrocinador_id": null,
-        "codigo_referido": "aBcDeF1234",
-        "id": 1
+        "activo": true,
+        "created_at": "2026-04-08T18:00:00.000000Z"
     },
     "access_token": "1|AbCdeFgHiJkLmNoPqRsTuVwXyZ...",
     "token_type": "Bearer"
@@ -109,7 +113,20 @@ Valida las credenciales y devuelve un nuevo token. **Importante:** Al hacer logi
 ```json
 {
     "message": "Inicio de sesión exitoso",
-    "data": { },
+    "user": {
+        "id": 1,
+        "nombre_completo": "Vendedor de Prueba",
+        "email": "vendedor@example.com",
+        "telefono": "987654321",
+        "dni": "12345678",
+        "direccion": "Av. Siempre Viva 123",
+        "rol": "vendedor",
+        "rol_label": "Vendedor",
+        "codigo_referido": "ABCDEF1234",
+        "patrocinador_id": null,
+        "activo": true,
+        "created_at": "2026-04-08T18:00:00.000000Z"
+    },
     "access_token": "2|ZxYwVuTsRqPoNmLkJiHgFeDcBa...",
     "token_type": "Bearer"
 }
@@ -158,10 +175,19 @@ Obtiene los datos del vendedor actualmente autenticado.
 ```json
 {
     "message": "Perfil obtenido exitosamente",
-    "data": {
+    "user": {
         "id": 1,
         "nombre_completo": "Vendedor de Prueba",
-        "email": "vendedor@example.com"
+        "email": "vendedor@example.com",
+        "telefono": "987654321",
+        "dni": "12345678",
+        "direccion": "Av. Siempre Viva 123",
+        "rol": "vendedor",
+        "rol_label": "Vendedor",
+        "codigo_referido": "ABCDEF1234",
+        "patrocinador_id": null,
+        "activo": true,
+        "created_at": "2026-04-08T18:00:00.000000Z"
     }
 }
 ```

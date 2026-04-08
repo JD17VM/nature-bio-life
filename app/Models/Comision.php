@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\EstadoComisionEnum;
 use Illuminate\Database\Eloquent\Model;
 
 class Comision extends Model
@@ -17,9 +18,12 @@ class Comision extends Model
     protected $casts = [
         'fecha_generacion' => 'datetime',
         'fecha_pago' => 'datetime',
-        'monto_compra' => 'decimal:2',
-        'porcentaje' => 'decimal:2',
-        'monto_comision' => 'decimal:2',
+        'estado'          => EstadoComisionEnum::class,
+        'monto_compra'    => 'decimal:2',
+        'porcentaje'      => 'decimal:2',
+        'monto_comision'  => 'decimal:2',
+        'fecha_generacion' => 'datetime',
+        'fecha_pago'       => 'datetime',
     ];
 
     // Relación: El usuario que GANA la comisión

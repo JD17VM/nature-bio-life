@@ -4,21 +4,23 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Comision;
+use Illuminate\Http\Request;
 use App\Http\Requests\Comision\StoreComisionRequest;
 use App\Http\Requests\Comision\UpdateComisionRequest;
 
 class ComisionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $perPage = min((int) $request->query('per_page', 15), 100);
+
         $query = Comision::with(['vendedor:id,nombre_completo', 'comprador:id,nombre_completo'])->latest();
 
-        // Si no es admin, solo ve sus propias comisiones ganadas
         if (! auth()->user()->isAdmin()) {
             $query->where('vendedor_id', auth()->id());
         }
 
-        return response()->json($query->get());
+        return response()->json($query->paginate($perPage));
     }
 
     public function store(StoreComisionRequest $request)
