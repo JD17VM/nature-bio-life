@@ -15,7 +15,7 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * Maneja el registro de un nuevo vendedor.
+     * Maneja el registro de un nuevo vendedor
      */
     public function register(RegisterUserRequest $request)
     {
