@@ -11,6 +11,7 @@ use App\Http\Requests\Pedido\UpdateEstadoPedidoRequest;
 use App\Models\Comision;
 use App\Models\Configuracion;
 use App\Models\EstadoPedido;
+use App\Models\HistorialPuntos;
 use App\Models\Pedido;
 use App\Models\DetallePedido;
 use App\Models\Producto;
@@ -175,6 +176,7 @@ class PedidoController extends Controller
 
             // 3. Lógica de negocio según el nuevo estado
             if ($nuevoEstado === EstadoPedidoEnum::ENTREGADO) {
+                $this->acreditarPuntos($pedido);
                 $this->generarComisionReferido($pedido);
             }
 
@@ -187,6 +189,46 @@ class PedidoController extends Controller
             'message' => "Estado del pedido actualizado a \"{$nuevoEstado->label()}\" exitosamente.",
             'data'    => $pedido->fresh(['detalles.producto', 'estados']),
         ], 200);
+    }
+
+    /**
+     * Acredita los puntos del pedido al saldo del comprador y registra el movimiento.
+     * Solo se ejecuta si el pedido aún no tiene puntos acreditados.
+     */
+    private function acreditarPuntos(Pedido $pedido): void
+    {
+        $puntosGanados = (int) $pedido->puntos_ganados;
+
+        if ($puntosGanados <= 0) {
+            return;
+        }
+
+        // Evitar doble acreditación si ya existe un registro de ingreso para este pedido
+        $yaAcreditado = HistorialPuntos::where('pedido_id', $pedido->id)
+            ->where('tipo', 'ingreso')
+            ->exists();
+
+        if ($yaAcreditado) {
+            return;
+        }
+
+        $comprador      = $pedido->usuario()->lockForUpdate()->first();
+        $balanceAnterior = $comprador->puntos_saldo;
+        $balanceNuevo    = $balanceAnterior + $puntosGanados;
+
+        // Actualizar saldo del usuario
+        $comprador->update(['puntos_saldo' => $balanceNuevo]);
+
+        // Registrar movimiento en historial
+        HistorialPuntos::create([
+            'user_id'         => $comprador->id,
+            'pedido_id'       => $pedido->id,
+            'puntos'          => $puntosGanados,
+            'tipo'            => 'ingreso',
+            'balance_anterior' => $balanceAnterior,
+            'balance_nuevo'    => $balanceNuevo,
+            'descripcion'     => "Puntos por pedido #{$pedido->numero_pedido}",
+        ]);
     }
 
     /**

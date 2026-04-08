@@ -31,6 +31,7 @@ class User extends Authenticatable
         'direccion',
         'info_bancaria_encriptada',
         'activo',
+        'puntos_saldo',
         'patrocinador_id',
         'rol',
     ];
@@ -56,9 +57,10 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
-            'activo'            => 'boolean',
-            'bloqueado_hasta'   => 'datetime',
-            'rol'               => RolUsuarioEnum::class,
+            'activo'        => 'boolean',
+            'puntos_saldo'  => 'integer',
+            'bloqueado_hasta' => 'datetime',
+            'rol'           => RolUsuarioEnum::class,
         ];
     }
 

@@ -123,10 +123,11 @@ class AuthController extends Controller
             'telefono'        => $user->telefono,
             'dni'             => $user->dni,
             'direccion'       => $user->direccion,
-            'rol'             => $user->rol->value,        // Siempre el string: 'admin', 'socio', 'vendedor'
-            'rol_label'       => $user->rol->label(),      // Etiqueta legible: 'Administrador', etc.
+            'rol'             => $user->rol->value,
+            'rol_label'       => $user->rol->label(),
             'codigo_referido' => $user->codigo_referido,
             'patrocinador_id' => $user->patrocinador_id,
+            'puntos_saldo'    => $user->puntos_saldo,
             'activo'          => $user->activo,
             'created_at'      => $user->created_at,
         ];
