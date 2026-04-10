@@ -1,0 +1,978 @@
+{
+  "info": {
+    "name": "Nature Bio Life API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección completa de endpoints de la API Nature Bio Life."
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "01 - Auth",
+      "item": [
+        {
+          "name": "Registro",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/registro", "host": ["{{base_url}}"], "path": ["registro"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre_completo\": \"Juan Pérez\",\n  \"email\": \"juan@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"telefono\": \"987654321\",\n  \"dni\": \"12345678\",\n  \"direccion\": \"Av. Siempre Viva 123\",\n  \"codigo_patrocinador\": null\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "  pm.collectionVariables.set('token', res.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/login", "host": ["{{base_url}}"], "path": ["login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"password123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Perfil",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/perfil", "host": ["{{base_url}}"], "path": ["perfil"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/logout", "host": ["{{base_url}}"], "path": ["logout"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 - Categorías (Productos)",
+      "item": [
+        {
+          "name": "Listar categorías",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categorias", "host": ["{{base_url}}"], "path": ["categorias"] }
+          }
+        },
+        {
+          "name": "Ver categoría",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categorias/1", "host": ["{{base_url}}"], "path": ["categorias", "1"] }
+          }
+        },
+        {
+          "name": "Crear categoría",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/categorias", "host": ["{{base_url}}"], "path": ["categorias"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Suplementos\",\n  \"descripcion\": \"Productos de suplementación\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar categoría",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/categorias/1", "host": ["{{base_url}}"], "path": ["categorias", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Suplementos Deportivos\",\n  \"activa\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Eliminar categoría",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/categorias/1", "host": ["{{base_url}}"], "path": ["categorias", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 - Productos",
+      "item": [
+        {
+          "name": "Listar productos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/productos?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["productos"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver producto",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/productos/1", "host": ["{{base_url}}"], "path": ["productos", "1"] }
+          }
+        },
+        {
+          "name": "Crear producto (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/productos", "host": ["{{base_url}}"], "path": ["productos"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Proteína Whey 1kg\",\n  \"descripcion\": \"Sabor chocolate\",\n  \"precio\": \"75.50\",\n  \"stock\": 100,\n  \"puntos\": 50,\n  \"categoria_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar producto (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/productos/1", "host": ["{{base_url}}"], "path": ["productos", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"precio\": \"80.00\",\n  \"stock\": 90\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Eliminar producto (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/productos/1", "host": ["{{base_url}}"], "path": ["productos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 - Pedidos",
+      "item": [
+        {
+          "name": "Listar pedidos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pedidos?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["pedidos"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver pedido",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/pedidos/1", "host": ["{{base_url}}"], "path": ["pedidos", "1"] }
+          }
+        },
+        {
+          "name": "Crear pedido",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/pedidos", "host": ["{{base_url}}"], "path": ["pedidos"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"detalles\": [\n    { \"producto_id\": 1, \"cantidad\": 2 },\n    { \"producto_id\": 3, \"cantidad\": 1 }\n  ],\n  \"notas\": \"Por favor entregar en la mañana\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Confirmar pago (subir comprobante)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/pedidos/1/confirmar-pago", "host": ["{{base_url}}"], "path": ["pedidos", "1", "confirmar-pago"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "comprobante", "type": "file", "src": "" },
+                { "key": "codigo_transaccion", "value": "TXN-123456", "type": "text" },
+                { "key": "notas", "value": "Pago por BCP", "type": "text" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Actualizar estado (Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/pedidos/1/estado", "host": ["{{base_url}}"], "path": ["pedidos", "1", "estado"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"verificando_pago\",\n  \"observaciones\": \"Comprobante recibido, verificando\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 - Premios",
+      "item": [
+        {
+          "name": "Listar premios",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/premios?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["premios"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver premio",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/premios/1", "host": ["{{base_url}}"], "path": ["premios", "1"] }
+          }
+        },
+        {
+          "name": "Crear premio (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/premios", "host": ["{{base_url}}"], "path": ["premios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Estadía en Hotel\",\n  \"puntos_requeridos\": 10000,\n  \"stock\": 5,\n  \"categoria_premio_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar premio (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/premios/1", "host": ["{{base_url}}"], "path": ["premios", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"puntos_requeridos\": 9000,\n  \"stock\": 3\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Eliminar premio (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/premios/1", "host": ["{{base_url}}"], "path": ["premios", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 - Categorías de Premios",
+      "item": [
+        {
+          "name": "Listar categorías de premios",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-premios", "host": ["{{base_url}}"], "path": ["categoria-premios"] }
+          }
+        },
+        {
+          "name": "Ver categoría de premio",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-premios/1", "host": ["{{base_url}}"], "path": ["categoria-premios", "1"] }
+          }
+        },
+        {
+          "name": "Crear categoría de premio",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-premios", "host": ["{{base_url}}"], "path": ["categoria-premios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Viajes\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar categoría de premio",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-premios/1", "host": ["{{base_url}}"], "path": ["categoria-premios", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Viajes Internacionales\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Eliminar categoría de premio",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-premios/1", "host": ["{{base_url}}"], "path": ["categoria-premios", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 - Videos",
+      "item": [
+        {
+          "name": "Listar videos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/videos?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["videos"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver video",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/videos/1", "host": ["{{base_url}}"], "path": ["videos", "1"] }
+          }
+        },
+        {
+          "name": "Crear video (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/videos", "host": ["{{base_url}}"], "path": ["videos"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Cómo usar la Proteína Whey\",\n  \"url\": \"https://youtube.com/watch?v=12345\",\n  \"categoria_video_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar video (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/videos/1", "host": ["{{base_url}}"], "path": ["videos", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Guía completa de Proteína Whey\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Eliminar video (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/videos/1", "host": ["{{base_url}}"], "path": ["videos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 - Categorías de Videos",
+      "item": [
+        {
+          "name": "Listar categorías de videos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-videos", "host": ["{{base_url}}"], "path": ["categoria-videos"] }
+          }
+        },
+        {
+          "name": "Ver categoría de video",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-videos/1", "host": ["{{base_url}}"], "path": ["categoria-videos", "1"] }
+          }
+        },
+        {
+          "name": "Crear categoría de video",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-videos", "host": ["{{base_url}}"], "path": ["categoria-videos"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Capacitación de Producto\",\n  \"orden\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar categoría de video",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-videos/1", "host": ["{{base_url}}"], "path": ["categoria-videos", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Capacitación Avanzada\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Eliminar categoría de video",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/categoria-videos/1", "host": ["{{base_url}}"], "path": ["categoria-videos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 - Materiales",
+      "item": [
+        {
+          "name": "Listar materiales",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{base_url}}/materiales?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["materiales"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver material",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/materiales/1", "host": ["{{base_url}}"], "path": ["materiales", "1"] }
+          }
+        },
+        {
+          "name": "Crear material (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/materiales", "host": ["{{base_url}}"], "path": ["materiales"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Catálogo PDF 2025\",\n  \"archivo_url\": \"https://cdn.example.com/catalogo.pdf\",\n  \"tipo_material_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar material (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/materiales/1", "host": ["{{base_url}}"], "path": ["materiales", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Catálogo PDF 2026\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Eliminar material (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/materiales/1", "host": ["{{base_url}}"], "path": ["materiales", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 - Tipos de Material",
+      "item": [
+        {
+          "name": "Listar tipos de material",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/tipo-materiales", "host": ["{{base_url}}"], "path": ["tipo-materiales"] }
+          }
+        },
+        {
+          "name": "Ver tipo de material",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/tipo-materiales/1", "host": ["{{base_url}}"], "path": ["tipo-materiales", "1"] }
+          }
+        },
+        {
+          "name": "Crear tipo de material",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/tipo-materiales", "host": ["{{base_url}}"], "path": ["tipo-materiales"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"PDF\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar tipo de material",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/tipo-materiales/1", "host": ["{{base_url}}"], "path": ["tipo-materiales", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Documento PDF\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Eliminar tipo de material",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/tipo-materiales/1", "host": ["{{base_url}}"], "path": ["tipo-materiales", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 - Referidos",
+      "item": [
+        {
+          "name": "Listar mis referidos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/referidos?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["referidos"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver detalle de referido",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/referidos/1", "host": ["{{base_url}}"], "path": ["referidos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 - Comisiones",
+      "item": [
+        {
+          "name": "Listar comisiones",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/comisiones?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["comisiones"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver comisión",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/comisiones/1", "host": ["{{base_url}}"], "path": ["comisiones", "1"] }
+          }
+        },
+        {
+          "name": "Actualizar comisión (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/comisiones/1", "host": ["{{base_url}}"], "path": ["comisiones", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"pagada\",\n  \"fecha_pago\": \"2026-04-09\",\n  \"observaciones\": \"Pagado por transferencia\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 - Historial de Puntos",
+      "item": [
+        {
+          "name": "Listar historial de puntos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/historial-puntos?page=1&per_page=15",
+              "host": ["{{base_url}}"],
+              "path": ["historial-puntos"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "per_page", "value": "15" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver movimiento de puntos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/historial-puntos/1", "host": ["{{base_url}}"], "path": ["historial-puntos", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 - Canje de Premios",
+      "item": [
+        {
+          "name": "Listar canjes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/canje-premios", "host": ["{{base_url}}"], "path": ["canje-premios"] }
+          }
+        },
+        {
+          "name": "Ver canje",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/canje-premios/1", "host": ["{{base_url}}"], "path": ["canje-premios", "1"] }
+          }
+        },
+        {
+          "name": "Solicitar canje",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/canje-premios", "host": ["{{base_url}}"], "path": ["canje-premios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"premio_id\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar canje (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/canje-premios/1", "host": ["{{base_url}}"], "path": ["canje-premios", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"aprobado\",\n  \"observaciones\": \"Premio aprobado para entrega\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 - Configuraciones",
+      "item": [
+        {
+          "name": "Listar configuraciones",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/configuraciones", "host": ["{{base_url}}"], "path": ["configuraciones"] }
+          }
+        },
+        {
+          "name": "Ver configuración",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/configuraciones/1", "host": ["{{base_url}}"], "path": ["configuraciones", "1"] }
+          }
+        },
+        {
+          "name": "Crear configuración",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/configuraciones", "host": ["{{base_url}}"], "path": ["configuraciones"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clave\": \"porcentaje_comision\",\n  \"valor\": \"10\",\n  \"descripcion\": \"Porcentaje de comisión para patrocinadores\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Actualizar configuración",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/configuraciones/1", "host": ["{{base_url}}"], "path": ["configuraciones", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": \"15\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Eliminar configuración",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/configuraciones/1", "host": ["{{base_url}}"], "path": ["configuraciones", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 - Dashboard y Notificaciones",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/dashboard", "host": ["{{base_url}}"], "path": ["dashboard"] }
+          }
+        },
+        {
+          "name": "Listar notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/notificaciones", "host": ["{{base_url}}"], "path": ["notificaciones"] }
+          }
+        },
+        {
+          "name": "Notificaciones no leídas",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/notificaciones/unread", "host": ["{{base_url}}"], "path": ["notificaciones", "unread"] }
+          }
+        },
+        {
+          "name": "Marcar notificación como leída",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/notificaciones/1/read", "host": ["{{base_url}}"], "path": ["notificaciones", "1", "read"] }
+          }
+        },
+        {
+          "name": "Marcar todas como leídas",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{base_url}}/notificaciones/read-all", "host": ["{{base_url}}"], "path": ["notificaciones", "read-all"] }
+          }
+        }
+      ]
+    }
+  ]
+}

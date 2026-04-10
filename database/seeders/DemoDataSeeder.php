@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Enums\RolUsuarioEnum;
 use App\Models\User;
 use App\Models\Categoria;
 use App\Models\Producto;
@@ -23,7 +24,7 @@ class DemoDataSeeder extends Seeder
             'codigo_referido' => 'REF-MASTER',
             'dni' => '12345678',
             'activo' => true,
-            'rol' => 'admin'
+            'rol' => RolUsuarioEnum::ADMIN
         ]);
 
         // 2. Crear CLIENTE (Referido)
@@ -35,7 +36,7 @@ class DemoDataSeeder extends Seeder
             'patrocinador_id' => $patrocinador->id,
             'dni' => '87654321',
             'activo' => true,
-            'rol' => 'cliente'
+            'rol' => RolUsuarioEnum::VENDEDOR
         ]);
 
         // 3. Categoría y Productos

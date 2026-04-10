@@ -1,6 +1,9 @@
 
 - [Registro, login y autenticacion de tokens](./registro-login-autenticacion_token.md)
 - [Guía de Manejo de Archivos e Imágenes](./guia-manejo-archivos.md)
+- [Enums de Estado (pedidos, comisiones, canjes, roles)](./enums-estados.md)
+- [Endpoints de Referidos](./referidos.md)
+- [Comisiones Automáticas por Referidos](./comisiones-automaticas.md)
 
 ---
 
