@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Storage;
 
 use App\Http\Requests\Producto\StoreProductoRequest;
 use App\Http\Requests\Producto\UpdateProductoRequest;
+use App\Traits\HandlesBase64Files;
 
 class ProductoController extends Controller
 {
+    use HandlesBase64Files;
     /**
      * Muestra una lista de los productos activos.
      */
@@ -38,10 +40,12 @@ class ProductoController extends Controller
 
         $datos = $request->validated();
 
-        if ($request->hasFile('imagen')) {
-            $path = $request->file('imagen')->store('productos', 'public');
-            $datos['imagen_url'] = $path;
-            unset($datos['imagen']); // Quitamos el archivo binario del array
+        if ($request->filled('imagen')) {
+            $path = $this->saveBase64File($request->input('imagen'), 'productos');
+            if ($path) {
+                $datos['imagen_url'] = $path;
+            }
+            unset($datos['imagen']);
         }
 
         $producto = Producto::create($datos);
@@ -75,13 +79,16 @@ class ProductoController extends Controller
 
         $datos = $request->validated();
 
-        if ($request->hasFile('imagen')) {
+        if ($request->filled('imagen')) {
             // Borrar imagen anterior si existe
             if ($producto->imagen_url && Storage::disk('public')->exists($producto->imagen_url)) {
                 Storage::disk('public')->delete($producto->imagen_url);
             }
-            $path = $request->file('imagen')->store('productos', 'public');
-            $datos['imagen_url'] = $path;
+            
+            $path = $this->saveBase64File($request->input('imagen'), 'productos');
+            if ($path) {
+                $datos['imagen_url'] = $path;
+            }
             unset($datos['imagen']);
         }
 

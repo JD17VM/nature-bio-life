@@ -15,12 +15,14 @@ use App\Models\HistorialPuntos;
 use App\Models\Pedido;
 use App\Models\DetallePedido;
 use App\Models\Producto;
+use App\Traits\HandlesBase64Files;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PedidoController extends Controller
 {
+    use HandlesBase64Files;
     /**
      * Muestra la lista de pedidos del usuario autenticado.
      * GET /api/pedidos
@@ -64,11 +66,10 @@ class PedidoController extends Controller
         $inputDetalles = $request->validated()['detalles'];
         $datosExtra = $request->only(['codigo_transaccion', 'notas']);
 
-        // Manejo del archivo de comprobante (si se envía)
+        // Manejo del archivo de comprobante en Base64
         $pathComprobante = null;
-        if ($request->hasFile('comprobante')) {
-            // Guarda en storage/app/public/comprobantes
-            $pathComprobante = $request->file('comprobante')->store('comprobantes', 'public');
+        if ($request->filled('comprobante')) {
+            $pathComprobante = $this->saveBase64File($request->input('comprobante'), 'comprobantes');
         }
 
         try {
@@ -283,7 +284,7 @@ class PedidoController extends Controller
     public function confirmarPago(Request $request, $id)
     {
         $request->validate([
-            'comprobante' => 'required|image|max:5120', // Máx 5MB
+            'comprobante' => 'required|string', // Imagen en Base64
             'codigo_transaccion' => 'nullable|string|max:255',
             'notas' => 'nullable|string'
         ]);
@@ -291,7 +292,11 @@ class PedidoController extends Controller
         // Buscar el pedido y asegurar que pertenezca al usuario autenticado
         $pedido = Pedido::where('id', $id)->where('user_id', $request->user()->id)->firstOrFail();
 
-        $path = $request->file('comprobante')->store('comprobantes', 'public');
+        $path = $this->saveBase64File($request->input('comprobante'), 'comprobantes');
+
+        if (!$path) {
+            return response()->json(['message' => 'El formato del comprobante no es válido.'], 422);
+        }
 
         $pedido->update([
             'comprobante_pago' => $path,

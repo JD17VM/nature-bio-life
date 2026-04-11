@@ -25,7 +25,7 @@ class StorePedidoRequest extends FormRequest
             'detalles.*.producto_id' => 'required|integer|exists:productos,id',
             'detalles.*.cantidad' => 'required|integer|min:1',
             // 'direccion_envio' => 'nullable|string', // Descomentar si agregas este campo a la tabla pedidos
-            'comprobante' => 'nullable|image|max:5120', // Imagen opcional (5MB máx)
+            'comprobante' => 'nullable|string', // Imagen opcional en Base64
             'codigo_transaccion' => 'nullable|string|max:255',
             'notas' => 'nullable|string',
         ];

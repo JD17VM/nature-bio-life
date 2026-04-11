@@ -24,7 +24,7 @@ class StoreMaterialRequest extends FormRequest
         return [
             'titulo' => 'required|string|max:255|unique:materiales',
             'descripcion' => 'nullable|string',
-            'archivo' => 'required|file|max:20480',
+            'archivo' => 'required|string',
             'tipo_material_id' => 'required|integer|exists:tipo_materiales,id',
             'activo' => 'nullable|boolean',
         ];

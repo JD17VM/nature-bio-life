@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\Storage;
 
 use App\Http\Requests\Material\StoreMaterialRequest;
 use App\Http\Requests\Material\UpdateMaterialRequest;
+use App\Traits\HandlesBase64Files;
 
 class MaterialController extends Controller
 {
+    use HandlesBase64Files;
     /**
      * Muestra una lista de los materiales activos.
      */
@@ -37,9 +39,11 @@ class MaterialController extends Controller
 
         $datos = $request->validated();
 
-        if ($request->hasFile('archivo')) {
-            $path = $request->file('archivo')->store('materiales', 'public');
-            $datos['archivo_url'] = $path;
+        if ($request->filled('archivo')) {
+            $path = $this->saveBase64File($request->input('archivo'), 'materiales');
+            if ($path) {
+                $datos['archivo_url'] = $path;
+            }
             unset($datos['archivo']);
         }
 
@@ -72,12 +76,15 @@ class MaterialController extends Controller
 
         $datos = $request->validated();
 
-        if ($request->hasFile('archivo')) {
+        if ($request->filled('archivo')) {
             if ($materiale->archivo_url && Storage::disk('public')->exists($materiale->archivo_url)) {
                 Storage::disk('public')->delete($materiale->archivo_url);
             }
-            $path = $request->file('archivo')->store('materiales', 'public');
-            $datos['archivo_url'] = $path;
+            
+            $path = $this->saveBase64File($request->input('archivo'), 'materiales');
+            if ($path) {
+                $datos['archivo_url'] = $path;
+            }
             unset($datos['archivo']);
         }
 

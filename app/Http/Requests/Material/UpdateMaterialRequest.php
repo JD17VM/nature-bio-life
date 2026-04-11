@@ -34,7 +34,7 @@ class UpdateMaterialRequest extends FormRequest
                 Rule::unique('materiales')->ignore($materialId),
             ],
             'descripcion' => 'sometimes|nullable|string',
-            'archivo' => 'nullable|file|max:20480',
+            'archivo' => 'nullable|string',
             'tipo_material_id' => 'sometimes|required|integer|exists:tipo_materiales,id',
             'activo' => 'sometimes|boolean',
         ];
