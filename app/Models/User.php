@@ -93,16 +93,19 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->rol === RolUsuarioEnum::ADMIN;
+        return $this->rol === RolUsuarioEnum::ADMIN
+            || $this->getRawOriginal('rol') === RolUsuarioEnum::ADMIN->value;
     }
 
     public function isSocio(): bool
     {
-        return $this->rol === RolUsuarioEnum::SOCIO;
+        return $this->rol === RolUsuarioEnum::SOCIO
+            || $this->getRawOriginal('rol') === RolUsuarioEnum::SOCIO->value;
     }
 
     public function isVendedor(): bool
     {
-        return $this->rol === RolUsuarioEnum::VENDEDOR;
+        return $this->rol === RolUsuarioEnum::VENDEDOR
+            || $this->getRawOriginal('rol') === RolUsuarioEnum::VENDEDOR->value;
     }
 }
