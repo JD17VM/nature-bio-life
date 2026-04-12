@@ -38,7 +38,7 @@ class DashboardController extends Controller
         return response()->json([
             'user' => [
                 'name' => $user->nombre_completo,
-                'rank' => ucfirst($user->rol), // Usamos el Rol como "Rango" (ej: Cliente, Patrocinador)
+                'rank' => ucfirst($user->rol->value),
                 'status' => $user->activo ? 'ACTIVO' : 'INACTIVO',
             ],
             'stats' => [
