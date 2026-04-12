@@ -52,17 +52,14 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'activo'        => 'boolean',
-            'puntos_saldo'  => 'integer',
-            'bloqueado_hasta' => 'datetime',
-            'rol'           => RolUsuarioEnum::class,
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password'          => 'hashed',
+        'activo'            => 'boolean',
+        'puntos_saldo'      => 'integer',
+        'bloqueado_hasta'   => 'datetime',
+        'rol'               => RolUsuarioEnum::class,
+    ];
 
     // --- RELACIONES DE PATROCINIO ---
 
