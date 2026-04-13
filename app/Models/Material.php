@@ -15,6 +15,7 @@ class Material extends Model
      *
      * @var array<int, string>
      */
+    protected $table = 'materiales';
     protected $fillable = [
         'titulo',
         'descripcion',

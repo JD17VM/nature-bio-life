@@ -20,6 +20,8 @@ class TipoMaterial extends Model
         'extension_permitida',
     ];
 
+    protected $table = 'tipo_materiales'; 
+
     /**
      * Obtiene los materiales asociados con este tipo.
      */
