@@ -48,45 +48,83 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/notificaciones/{id}/read', [App\Http\Controllers\Api\NotificacionController::class, 'markAsRead']);
     Route::put('/notificaciones/read-all', [App\Http\Controllers\Api\NotificacionController::class, 'markAllAsRead']);
 
-    // Mover aquí la ruta de pedidos para protegerla con autenticación
+    // ============================================================
+    // TRANSACCIONES Y DATOS PERSONALES (Todos los usuarios)
+    // ============================================================
     Route::apiResource('pedidos', PedidoController::class)->except(['update', 'destroy']);
     Route::post('/pedidos/{id}/confirmar-pago', [PedidoController::class, 'confirmarPago']);
-    Route::patch('/pedidos/{id}/estado', [PedidoController::class, 'actualizarEstado']);
-
-    // Rutas protegidas para administración (Crear, Editar, Eliminar)
-    // El controlador verificará si es Admin, Socio o Vendedor
-    Route::apiResource('productos', ProductoController::class)->except(['index', 'show']);
-    Route::apiResource('videos', VideoController::class)->except(['index', 'show']);
-    Route::apiResource('premios', PremioController::class)->except(['index', 'show']);
-    Route::apiResource('materiales', MaterialController::class)->except(['index', 'show']);
 
     // Referidos del usuario autenticado
     Route::get('/referidos', [ReferidoController::class, 'index']);
     Route::get('/referidos/{id}', [ReferidoController::class, 'show']);
 
-    // Rutas operativas protegidas (Requieren Auth)
-    Route::apiResource('comisiones', ComisionController::class);
-    Route::apiResource('historial-puntos', HistorialPuntosController::class)->except(['update', 'destroy']);
+    // Ver comisiones propias y historial propio
+    Route::apiResource('comisiones', ComisionController::class)->only(['index', 'show']);
+    Route::apiResource('historial-puntos', HistorialPuntosController::class)->only(['index', 'show']);
     Route::apiResource('canje-premios', CanjePremioController::class);
+
+    // ============================================================
+    // LECTURA DE CATÁLOGOS (Todos los usuarios autenticados)
+    // ============================================================
+    Route::apiResource('categorias', CategoriaController::class)->only(['index', 'show']);
+    Route::apiResource('categoria-premios', CategoriaPremioController::class)->only(['index', 'show']);
+    Route::apiResource('categoria-videos', CategoriaVideoController::class)->only(['index', 'show']);
+    Route::apiResource('tipo-materiales', TipoMaterialController::class)->only(['index', 'show']);
+    Route::apiResource('productos', ProductoController::class)->only(['index', 'show']);
+    Route::apiResource('premios', PremioController::class)->only(['index', 'show']);
+    Route::apiResource('videos', VideoController::class)->only(['index', 'show']);
+    Route::apiResource('materiales', MaterialController::class)->only(['index', 'show']);
+    Route::apiResource('configuraciones', ConfiguracionController::class)->only(['index', 'show']);
 });
 
-Route::apiResource('categorias', CategoriaController::class);
-Route::apiResource('categoria-premios', CategoriaPremioController::class);
-Route::apiResource('categoria-videos', CategoriaVideoController::class);
-Route::apiResource('tipo-materiales', TipoMaterialController::class);
+// ============================================================
+// RUTAS SOLO ADMIN (Crear, Editar, Eliminar recursos)
+// ============================================================
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    // Gestión de productos
+    Route::apiResource('productos', ProductoController::class)->except(['index', 'show']);
 
-// Rutas públicas (Solo ver listados y detalles)
-Route::apiResource('productos', ProductoController::class)->only(['index', 'show']);
-Route::apiResource('premios', PremioController::class)->only(['index', 'show']);
-Route::apiResource('videos', VideoController::class)->only(['index', 'show']);
-Route::apiResource('materiales', MaterialController::class)->only(['index', 'show']);
+    // Gestión de videos
+    Route::apiResource('videos', VideoController::class)->except(['index', 'show']);
 
-Route::apiResource('configuraciones', ConfiguracionController::class);
+    // Gestión de premios
+    Route::apiResource('premios', PremioController::class)->except(['index', 'show']);
+
+    // Gestión de materiales
+    Route::apiResource('materiales', MaterialController::class)->except(['index', 'show']);
+
+    // Gestión de categorías
+    Route::apiResource('categorias', CategoriaController::class)->except(['index', 'show']);
+    Route::apiResource('categoria-premios', CategoriaPremioController::class)->except(['index', 'show']);
+    Route::apiResource('categoria-videos', CategoriaVideoController::class)->except(['index', 'show']);
+    Route::apiResource('tipo-materiales', TipoMaterialController::class)->except(['index', 'show']);
+
+    // Gestión de configuraciones
+    Route::apiResource('configuraciones', ConfiguracionController::class)->except(['index', 'show']);
+
+    // Gestión de pedidos (cambiar estado)
+    Route::patch('/pedidos/{id}/estado', [PedidoController::class, 'actualizarEstado']);
+
+    // Gestión de comisiones (crear, editar, eliminar)
+    Route::apiResource('comisiones', ComisionController::class)->except(['index', 'show']);
+    Route::post('/comisiones', [ComisionController::class, 'store']);
+    Route::put('/comisiones/{comision}', [ComisionController::class, 'update']);
+    Route::delete('/comisiones/{comision}', [ComisionController::class, 'destroy']);
+
+    // Movimientos manuales de puntos
+    Route::apiResource('historial-puntos', HistorialPuntosController::class)->only(['store']);
+
+    // Aprobar/rechazar canjes de premios
+    Route::put('/canje-premios/{canjePremio}', [CanjePremioController::class, 'update']);
+    Route::delete('/canje-premios/{canjePremio}', [CanjePremioController::class, 'destroy']);
+});
 
 
 
 
-// --- RUTAS DE AUTENTICACIÓN ---
+// ============================================================
+// PÚBLICAS (Sin autenticación - Solo Login/Registro)
+// ============================================================
 Route::post('/registro', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
