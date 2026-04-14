@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Comision;
+use App\Notifications\Comisiones\ComisionGenerada;
 use Illuminate\Http\Request;
 use App\Http\Requests\Comision\StoreComisionRequest;
 use App\Http\Requests\Comision\UpdateComisionRequest;
@@ -30,6 +31,11 @@ class ComisionController extends Controller
         }
 
         $comision = Comision::create($request->validated());
+        
+        // Cargar las relaciones necesarias y disparar notificación al vendedor
+        $comision->load(['vendedor', 'pedido.detalles.producto', 'comprador']);
+        $comision->vendedor->notify(new ComisionGenerada($comision));
+
         return response()->json(['message' => 'Comisión registrada', 'data' => $comision], 201);
     }
 

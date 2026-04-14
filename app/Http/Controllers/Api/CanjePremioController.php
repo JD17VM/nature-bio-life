@@ -9,6 +9,8 @@ use App\Models\Premio;
 use App\Models\HistorialPuntos;
 use App\Http\Requests\CanjePremio\StoreCanjePremioRequest;
 use App\Http\Requests\CanjePremio\UpdateCanjePremioRequest;
+use App\Notifications\Canjes\CanjeCreado;
+use App\Notifications\Canjes\CanjeAprobado;
 use Illuminate\Support\Facades\DB;
 
 class CanjePremioController extends Controller
@@ -66,6 +68,9 @@ class CanjePremioController extends Controller
                 // 3. Restar stock del premio (ahora seguro, ya fue validado)
                 $premio->decrement('stock');
 
+                // 4. Enviar notificación al usuario
+                $canje->usuario->notify(new CanjeCreado($canje));
+
                 return response()->json(['message' => 'Canje realizado con éxito', 'data' => $canje], 201);
             });
 
@@ -89,7 +94,15 @@ class CanjePremioController extends Controller
             return response()->json(['message' => 'No autorizado.'], 403);
         }
 
-        $canjePremio->update($request->validated());
+        $datosValidados = $request->validated();
+        $estadoAnterior = $canjePremio->estado;
+        $canjePremio->update($datosValidados);
+
+        // Si el nuevo estado es aprobado, notificar al usuario
+        if ($canjePremio->estado === EstadoCanjeEnum::APROBADO && $estadoAnterior !== EstadoCanjeEnum::APROBADO) {
+            $canjePremio->usuario->notify(new CanjeAprobado($canjePremio));
+        }
+
         return response()->json(['message' => 'Estado actualizado', 'data' => $canjePremio]);
     }
     

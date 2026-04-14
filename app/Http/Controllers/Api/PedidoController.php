@@ -15,6 +15,8 @@ use App\Models\HistorialPuntos;
 use App\Models\Pedido;
 use App\Models\DetallePedido;
 use App\Models\Producto;
+use App\Notifications\Pedidos\PedidoCreado;
+use App\Notifications\Pedidos\PedidoCompletado;
 use App\Traits\HandlesBase64Files;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -132,7 +134,10 @@ class PedidoController extends Controller
                     $detalle['producto']->decrement('stock', $detalle['cantidad']);
                 }
 
-                return $pedido;
+                // 4. Enviar notificación al usuario
+                $resultado->usuario->notify(new PedidoCreado($resultado));
+
+                return $resultado;
             });
 
             return response()->json(['message' => 'Pedido creado exitosamente', 'data' => $resultado], 201);
@@ -179,6 +184,8 @@ class PedidoController extends Controller
             if ($nuevoEstado === EstadoPedidoEnum::ENTREGADO) {
                 $this->acreditarPuntos($pedido);
                 $this->generarComisionReferido($pedido);
+                // Notificar al usuario que su pedido fue completado
+                $pedido->usuario->notify(new PedidoCompletado($pedido));
             }
 
             if ($nuevoEstado === EstadoPedidoEnum::CANCELADO) {
