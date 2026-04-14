@@ -1812,24 +1812,38 @@ Sin body
 
 ```json
 {
-    "message": "Canje realizado exitosamente",
+    "message": "Canje realizado con éxito",
     "data": {
         "id": 5,
         "user_id": 1,
         "premio_id": 1,
         "puntos_utilizados": 500,
-        "estado": "pendiente"
+        "estado": "pendiente",
+        "observaciones": "Talle M",
+        "created_at": "2026-04-13T14:30:00Z"
     }
 }
 ```
 
-### Output (422 Error)
+### Output (422 - Sin Stock del Premio)
+
+```json
+{
+    "message": "El premio 'Camiseta Oficial' no tiene stock disponible en este momento."
+}
+```
+
+**Nota:** Este error ocurre cuando se intenta canjear un premio que no tiene inventario disponible. Solicita al usuario que intente con otro premio.
+
+### Output (422 - Puntos Insuficientes)
 
 ```json
 {
     "message": "Puntos insuficientes. Tienes 300 y necesitas 500."
 }
 ```
+
+**Nota:** El usuario no tiene suficientes puntos acumulados para canjear este premio. Debe completar más compras o esperar a recibir bonificaciones.
 
 ---
 

@@ -29,11 +29,17 @@ class CanjePremioController extends Controller
     {
         try {
             return DB::transaction(function () use ($request) {
-                $premio = Premio::findOrFail($request->premio_id);
+                // Bloquear el registro para evitar condiciones de carrera en el stock
+                $premio = Premio::lockForUpdate()->findOrFail($request->premio_id);
                 
+                // Validación 1: Verificar que el premio tenga stock disponible
+                if ($premio->stock <= 0) {
+                    throw new \Exception("El premio '{$premio->nombre}' no tiene stock disponible en este momento.");
+                }
 
                 $puntosUsuario = HistorialPuntos::where('user_id', $request->user_id)->sum('puntos');
                 
+                // Validación 2: Verificar puntos disponibles
                 if ($puntosUsuario < $premio->puntos_requeridos) {
                     throw new \Exception("Puntos insuficientes. Tienes $puntosUsuario y necesitas {$premio->puntos_requeridos}.");
                 }
@@ -57,7 +63,7 @@ class CanjePremioController extends Controller
                     'balance_nuevo' => $puntosUsuario - $premio->puntos_requeridos
                 ]);
                 
-                // 3. Restar stock del premio
+                // 3. Restar stock del premio (ahora seguro, ya fue validado)
                 $premio->decrement('stock');
 
                 return response()->json(['message' => 'Canje realizado con éxito', 'data' => $canje], 201);
