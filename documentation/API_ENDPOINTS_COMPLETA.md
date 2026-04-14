@@ -194,7 +194,119 @@ Sin body, solo headers con token
 
 ---
 
-## 4. Logout
+## 4. Actualizar Perfil
+
+| Propiedad         | Valor                       |
+| ----------------- | --------------------------- |
+| **Endpoint**      | `/api/perfil`               |
+| **Verbo HTTP**    | `PUT`                       |
+| **Autenticación** | ✅ Requerida (Bearer Token) |
+| **Rol Requerido** | ❌ No                       |
+
+### Input (Body)
+
+```json
+{
+    "nombre_completo": "Juan Pérez García",
+    "email": "juan.perez@example.com",
+    "telefono": "987654321",
+    "dni": "12345678",
+    "direccion": "Av. Siempre Viva 123, Apt 4B"
+}
+```
+
+**Notas:**
+
+- Todos los campos son opcionales, puedes actualizar solo los que necesites
+- El email debe ser único (no puede usarse si otro usuario lo tiene)
+- El DNI debe ser único (no puede usarse si otro usuario lo tiene)
+
+### Output (200 OK)
+
+```json
+{
+    "message": "Perfil actualizado exitosamente",
+    "user": {
+        "id": 1,
+        "nombre_completo": "Juan Pérez García",
+        "email": "juan.perez@example.com",
+        "telefono": "987654321",
+        "dni": "12345678",
+        "direccion": "Av. Siempre Viva 123, Apt 4B",
+        "rol": "vendedor",
+        "rol_label": "Vendedor",
+        "codigo_referido": "XYZ98765",
+        "patrocinador_id": null,
+        "puntos_saldo": 1500,
+        "activo": true,
+        "created_at": "2026-03-15T10:30:00Z"
+    }
+}
+```
+
+### Output (422 Error de Validación)
+
+```json
+{
+    "message": "El email debe ser válido. (and 1 more error)",
+    "errors": {
+        "email": ["Este email ya está en uso."],
+        "dni": ["Este DNI ya está en uso."]
+    }
+}
+```
+
+---
+
+## 5. Cambiar Contraseña
+
+| Propiedad         | Valor                       |
+| ----------------- | --------------------------- |
+| **Endpoint**      | `/api/cambiar-contraseña`   |
+| **Verbo HTTP**    | `POST`                      |
+| **Autenticación** | ✅ Requerida (Bearer Token) |
+| **Rol Requerido** | ❌ No                       |
+
+### Input (Body)
+
+```json
+{
+    "current_password": "contraseña_actual",
+    "new_password": "nueva_contraseña",
+    "new_password_confirmation": "nueva_contraseña"
+}
+```
+
+**Notas:**
+
+- `current_password` debe ser correcta
+- `new_password` debe tener al menos 8 caracteres
+- `new_password` debe ser diferente de `current_password`
+- Las contraseñas nuevas deben coincidir
+
+### Output (200 OK)
+
+```json
+{
+    "message": "Contraseña actualizada exitosamente"
+}
+```
+
+### Output (422 Error de Validación)
+
+```json
+{
+    "message": "La contraseña actual es incorrecta. (and 1 more error)",
+    "errors": {
+        "current_password": ["La contraseña actual es incorrecta."],
+        "new_password": ["Las contraseñas nuevas no coinciden."]
+    }
+}
+```
+
+---
+
+## 7. Logout
 
 | Propiedad         | Valor                       |
 | ----------------- | --------------------------- |

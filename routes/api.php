@@ -38,6 +38,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/perfil', [AuthController::class, 'profile']);
+    Route::put('/perfil', [AuthController::class, 'updateProfile']);
+    Route::post('/cambiar-contraseña', [AuthController::class, 'changePassword']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     // Ruta del Dashboard (Inicio)

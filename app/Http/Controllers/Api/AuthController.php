@@ -7,6 +7,8 @@ use App\Enums\RolUsuarioEnum;
 use App\Models\User;
 use App\Http\Requests\Auth\LoginUserRequest;
 use App\Http\Requests\Auth\RegisterUserRequest;
+use App\Http\Requests\Auth\UpdatePerfilRequest;
+use App\Http\Requests\Auth\CambiarPasswordRequest;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -108,6 +110,41 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Sesión cerrada exitosamente.',
+        ], 200);
+    }
+
+    /**
+     * Actualiza el perfil del usuario autenticado.
+     */
+    public function updateProfile(UpdatePerfilRequest $request)
+    {
+        $user = $request->user();
+        $datosValidados = $request->validated();
+
+        // Solo actualizar campos que se enviaron
+        $user->update($datosValidados);
+
+        return response()->json([
+            'message' => 'Perfil actualizado exitosamente',
+            'user'    => $this->formatearUsuario($user),
+        ], 200);
+    }
+
+    /**
+     * Cambia la contraseña del usuario autenticado.
+     */
+    public function changePassword(CambiarPasswordRequest $request)
+    {
+        $user = $request->user();
+        $datosValidados = $request->validated();
+
+        // Actualizar la contraseña
+        $user->update([
+            'password' => Hash::make($datosValidados['new_password']),
+        ]);
+
+        return response()->json([
+            'message' => 'Contraseña actualizada exitosamente',
         ], 200);
     }
 
