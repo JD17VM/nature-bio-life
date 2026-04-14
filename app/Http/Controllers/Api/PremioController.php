@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Premio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 use App\Http\Requests\Premio\StorePremioRequest;
 use App\Http\Requests\Premio\UpdatePremioRequest;
+use App\Traits\HandlesBase64Files;
 
 class PremioController extends Controller
 {
+    use HandlesBase64Files;
     /**
      * Muestra una lista de los premios disponibles.
      */
@@ -34,7 +37,18 @@ class PremioController extends Controller
             return response()->json(['message' => 'No autorizado.'], 403);
         }
 
-        $premio = Premio::create($request->validated());
+        $datos = $request->validated();
+
+        // Procesar imagen en Base64 si existe
+        if ($request->filled('imagen')) {
+            $path = $this->saveBase64File($request->input('imagen'), 'premios');
+            if ($path) {
+                $datos['imagen_url'] = $path;
+            }
+            unset($datos['imagen']);
+        }
+
+        $premio = Premio::create($datos);
         
         return response()->json([
             'message' => 'Premio creado exitosamente',
@@ -60,7 +74,23 @@ class PremioController extends Controller
             return response()->json(['message' => 'No autorizado.'], 403);
         }
 
-        $premio->update($request->validated());
+        $datos = $request->validated();
+
+        // Procesar imagen en Base64 si existe
+        if ($request->filled('imagen')) {
+            // Borrar imagen anterior si existe
+            if ($premio->imagen_url && Storage::disk('public')->exists($premio->imagen_url)) {
+                Storage::disk('public')->delete($premio->imagen_url);
+            }
+            
+            $path = $this->saveBase64File($request->input('imagen'), 'premios');
+            if ($path) {
+                $datos['imagen_url'] = $path;
+            }
+            unset($datos['imagen']);
+        }
+
+        $premio->update($datos);
 
         return response()->json([
             'message' => 'Premio actualizado exitosamente',
