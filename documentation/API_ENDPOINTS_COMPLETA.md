@@ -2043,15 +2043,32 @@ Parámetros: ?per_page=10 (para pedidos y comisiones)
 
 # 🔔 NOTIFICACIONES
 
+**Estado:** ✅ Implementado - Fase 1 Completada (14 de Abril de 2026)
+
+Las notificaciones se generan automáticamente cuando ocurren eventos importantes. El sistema utiliza **almacenamiento en base de datos** con polling desde el cliente (cada 30-60 segundos).
+
+## Tipos de Notificaciones Implementadas
+
+| Tipo                  | Clase                                           | Cuándo se Dispara                        | Destinatario          |
+| --------------------- | ----------------------------------------------- | ---------------------------------------- | --------------------- |
+| **Pedido Creado**     | `App\Notifications\Pedidos\PedidoCreado`        | Cuando usuario crea un pedido            | Comprador             |
+| **Pedido Completado** | `App\Notifications\Pedidos\PedidoCompletado`    | Cuando admin marca pedido como ENTREGADO | Comprador             |
+| **Canje Creado**      | `App\Notifications\Canjes\CanjeCreado`          | Cuando usuario solicita un canje         | Usuario               |
+| **Canje Aprobado**    | `App\Notifications\Canjes\CanjeAprobado`        | Cuando admin aprueba un canje            | Usuario               |
+| **Comisión Generada** | `App\Notifications\Comisiones\ComisionGenerada` | Cuando se crea una comisión por venta    | Vendedor/Patrocinador |
+
+---
+
 ## 1. Listar Mis Notificaciones
 
-| Propiedad         | Valor                       |
-| ----------------- | --------------------------- |
-| **Endpoint**      | `/api/notificaciones`       |
-| **Verbo HTTP**    | `GET`                       |
-| **Autenticación** | ✅ Requerida (Bearer Token) |
-| **Rol Requerido** | ❌ No                       |
-| **Paginación**    | ✅ Sí (15 por página)       |
+| Propiedad         | Valor                                                                         |
+| ----------------- | ----------------------------------------------------------------------------- |
+| **Endpoint**      | `/api/notificaciones`                                                         |
+| **Verbo HTTP**    | `GET`                                                                         |
+| **Autenticación** | ✅ Requerida (Bearer Token)                                                   |
+| **Rol Requerido** | ❌ No                                                                         |
+| **Paginación**    | ✅ Sí (15 por página)                                                         |
+| **Descripción**   | Obtiene todas las notificaciones del usuario autenticado (leídas y no leídas) |
 
 ### Input
 
@@ -2066,16 +2083,28 @@ Sin body
         "current_page": 1,
         "data": [
             {
-                "id": "uuid-1234-5678",
-                "type": "App\\Notifications\\PedidoConfirmado",
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "type": "App\\Notifications\\Pedidos\\PedidoCreado",
                 "notifiable_type": "App\\Models\\User",
-                "notifiable_id": 1,
+                "notifiable_id": 5,
                 "data": {
-                    "titulo": "Pedido Confirmado",
-                    "mensaje": "Tu pedido ORD-ABCD1234 ha sido confirmado"
+                    "titulo": "Pedido Creado",
+                    "mensaje": "Tu pedido ORD-ABC123XYZ por $150.00 ha sido recibido. Ganarás 30 puntos cuando se complete."
                 },
                 "read_at": null,
-                "created_at": "2026-04-11T10:30:00Z"
+                "created_at": "2026-04-14T15:30:00Z"
+            },
+            {
+                "id": "660f9410-f40c-52e5-b827-557766551111",
+                "type": "App\\Notifications\\Canjes\\CanjeAprobado",
+                "notifiable_type": "App\\Models\\User",
+                "notifiable_id": 5,
+                "data": {
+                    "titulo": "¡Canje Aprobado!",
+                    "mensaje": "Tu canje por 'PlayStation 5' fue aprobado. Se enviará en 3-5 días hábiles."
+                },
+                "read_at": "2026-04-14T16:00:00Z",
+                "created_at": "2026-04-14T16:15:00Z"
             }
         ],
         "first_page_url": "https://www.naturebiolife.com/api/notificaciones?page=1",
@@ -2103,23 +2132,31 @@ Sin body
         "path": "https://www.naturebiolife.com/api/notificaciones",
         "per_page": 15,
         "prev_page_url": null,
-        "to": 3,
-        "total": 3
+        "to": 2,
+        "total": 2
     },
     "unread_count": 1
 }
 ```
 
+**Notas:**
+
+- `data` siempre contiene SOLO `titulo` y `mensaje` (estructura predecible para tipado)
+- `type` contiene el nombre de la clase de notificación para identificar el origen
+- `read_at` es `null` si no ha sido leída, o un timestamp si ya fue marcada como leída
+- `unread_count` indica cuántas notificaciones sin leer tiene el usuario
+
 ---
 
 ## 2. Ver Notificaciones No Leídas
 
-| Propiedad         | Valor                        |
-| ----------------- | ---------------------------- |
-| **Endpoint**      | `/api/notificaciones/unread` |
-| **Verbo HTTP**    | `GET`                        |
-| **Autenticación** | ✅ Requerida (Bearer Token)  |
-| **Rol Requerido** | ❌ No                        |
+| Propiedad         | Valor                                    |
+| ----------------- | ---------------------------------------- |
+| **Endpoint**      | `/api/notificaciones/unread`             |
+| **Verbo HTTP**    | `GET`                                    |
+| **Autenticación** | ✅ Requerida (Bearer Token)              |
+| **Rol Requerido** | ❌ No                                    |
+| **Descripción**   | Obtiene solo las notificaciones sin leer |
 
 ### Input
 
@@ -2132,14 +2169,16 @@ Sin body
     "message": "Notificaciones no leídas",
     "data": [
         {
-            "id": "uuid-1234-5678",
-            "type": "App\\Notifications\\PedidoConfirmado",
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "type": "App\\Notifications\\Pedidos\\PedidoCreado",
+            "notifiable_type": "App\\Models\\User",
+            "notifiable_id": 5,
             "data": {
-                "titulo": "Pedido Confirmado",
-                "mensaje": "Tu pedido ORD-ABCD1234 ha sido confirmado"
+                "titulo": "Pedido Creado",
+                "mensaje": "Tu pedido ORD-ABC123XYZ por $150.00 ha sido recibido. Ganarás 30 puntos cuando se complete."
             },
             "read_at": null,
-            "created_at": "2026-04-11T10:30:00Z"
+            "created_at": "2026-04-14T15:30:00Z"
         }
     ]
 }
@@ -2149,22 +2188,35 @@ Sin body
 
 ## 3. Marcar Notificación Como Leída
 
-| Propiedad         | Valor                           |
-| ----------------- | ------------------------------- |
-| **Endpoint**      | `/api/notificaciones/{id}/read` |
-| **Verbo HTTP**    | `PUT`                           |
-| **Autenticación** | ✅ Requerida (Bearer Token)     |
-| **Rol Requerido** | ❌ No                           |
+| Propiedad         | Valor                                        |
+| ----------------- | -------------------------------------------- |
+| **Endpoint**      | `/api/notificaciones/{id}/read`              |
+| **Verbo HTTP**    | `PATCH`                                      |
+| **Autenticación** | ✅ Requerida (Bearer Token)                  |
+| **Rol Requerido** | ❌ No                                        |
+| **Descripción**   | Marca una notificación específica como leída |
 
 ### Input
 
-Sin body
+Sin body (solo el ID en la URL)
 
 ### Output (200 OK)
 
 ```json
 {
-    "message": "Notificación marcada como leída"
+    "message": "Notificación marcada como leída",
+    "data": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "type": "App\\Notifications\\Pedidos\\PedidoCreado",
+        "notifiable_type": "App\\Models\\User",
+        "notifiable_id": 5,
+        "data": {
+            "titulo": "Pedido Creado",
+            "mensaje": "Tu pedido ORD-ABC123XYZ por $150.00 ha sido recibido. Ganarás 30 puntos cuando se complete."
+        },
+        "read_at": "2026-04-14T16:00:00Z",
+        "created_at": "2026-04-14T15:30:00Z"
+    }
 }
 ```
 
@@ -2172,12 +2224,13 @@ Sin body
 
 ## 4. Marcar Todas las Notificaciones Como Leídas
 
-| Propiedad         | Valor                          |
-| ----------------- | ------------------------------ |
-| **Endpoint**      | `/api/notificaciones/read-all` |
-| **Verbo HTTP**    | `PUT`                          |
-| **Autenticación** | ✅ Requerida (Bearer Token)    |
-| **Rol Requerido** | ❌ No                          |
+| Propiedad         | Valor                                      |
+| ----------------- | ------------------------------------------ |
+| **Endpoint**      | `/api/notificaciones/read-all`             |
+| **Verbo HTTP**    | `PATCH`                                    |
+| **Autenticación** | ✅ Requerida (Bearer Token)                |
+| **Rol Requerido** | ❌ No                                      |
+| **Descripción**   | Marca TODAS las notificaciones como leídas |
 
 ### Input
 
@@ -2187,8 +2240,71 @@ Sin body
 
 ```json
 {
-    "message": "Todas las notificaciones marcadas como leídas"
+    "message": "Todas las notificaciones marcadas como leídas",
+    "unread_count": 0
 }
+```
+
+---
+
+## Patrones de Uso en Frontend
+
+### Tipado TypeScript
+
+```typescript
+interface NotificationData {
+    titulo: string;
+    mensaje: string;
+}
+
+interface Notification {
+    id: string;
+    type: string; // "App\Notifications\Pedidos\PedidoCreado", etc
+    notifiable_type: string;
+    notifiable_id: number;
+    data: NotificationData;
+    read_at: string | null;
+    created_at: string;
+}
+```
+
+### Polling cada 30 segundos
+
+```typescript
+useEffect(() => {
+    const interval = setInterval(() => {
+        fetch("/api/notificaciones/unread")
+            .then((res) => res.json())
+            .then((data) => {
+                setNotificaciones(data.data);
+            });
+    }, 30000); // 30 segundos
+
+    return () => clearInterval(interval);
+}, []);
+```
+
+### Renderizar notificación
+
+```typescript
+notificaciones.map(notif => (
+  <NotificationCard
+    key={notif.id}
+    title={notif.data.titulo}
+    message={notif.data.mensaje}
+    isRead={notif.read_at !== null}
+    onPress={() => {
+      // Usar el type para navegar
+      if (notif.type.includes('Pedido')) {
+        navigation.navigate('Pedidos');
+      } else if (notif.type.includes('Canje')) {
+        navigation.navigate('Canjes');
+      } else if (notif.type.includes('Comision')) {
+        navigation.navigate('Comisiones');
+      }
+    }}
+  />
+))
 ```
 
 ---
